@@ -4,8 +4,8 @@ class MyHomePage extends StatelessWidget {
   MyHomePage({super.key});
 
   final String npm = "2506600801";
-  final String nama = "Rheina Uliana";
-  final String kelas = "PBP A";
+  final String name = "Rheina Uliana";
+  final String className = "PBP A";
 
   final List<ItemHomepage> items = [
     ItemHomepage("View Projects", Icons.folder),
@@ -39,8 +39,8 @@ class MyHomePage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 InfoCard(title: 'NPM', content: npm),
-                InfoCard(title: 'Name', content: nama),
-                InfoCard(title: 'Class', content: kelas),
+                InfoCard(title: 'Name', content: name),
+                InfoCard(title: 'Class', content: className),
               ],
             ),
 
