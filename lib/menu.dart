@@ -174,7 +174,7 @@ class ItemCard extends StatelessWidget {
             ..hideCurrentSnackBar()
             ..showSnackBar(
               SnackBar(
-                content: Text('Kamu telah menekan tombol ${item.name}!'),
+                content: Text('You have clicked the ${item.name} button!'),
                 behavior: SnackBarBehavior.floating,
                 margin: const EdgeInsets.all(16.0),
                 action: SnackBarAction(
