@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/screens/menu.dart';
-import 'package:myportofolio_mobile/screens/project_form.dart';
 
+/// Kartu aksi pada halaman utama.
+///
+/// Menampilkan ikon dan nama item, meminta konfirmasi untuk aksi
+/// destruktif, menampilkan SnackBar, lalu membuka [ItemHomepage.page] bila
+/// tersedia.
 class ItemCard extends StatelessWidget {
   final ItemHomepage item;
 
@@ -14,9 +18,9 @@ class ItemCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: () async {
-          // Aksi destruktif perlu konfirmasi.
+          // Aksi destruktif memerlukan konfirmasi sebelum dijalankan.
           if (item.requiresConfirmation) {
-            // Hanya true kalau user menekan Confirm.
+            // Hanya bernilai true jika pengguna menekan Confirm.
             final confirmed = await showDialog<bool>(
               context: context,
               builder: (dialogContext) {
@@ -39,11 +43,11 @@ class ItemCard extends StatelessWidget {
               },
             );
 
-            // Tap di luar dialog dianggap batal.
+            // Menekan area di luar dialog dianggap batal.
             if (confirmed != true) return;
           }
 
-          // Setelah await, context bisa sudah tidak valid.
+          // Setelah await, context bisa sudah tidak terpasang di widget tree.
           if (!context.mounted) return;
 
           ScaffoldMessenger.of(context)
@@ -62,10 +66,14 @@ class ItemCard extends StatelessWidget {
               ),
             );
 
-          if (item.name == "Add Project") {
+          // Tujuan navigasi diambil dari item.page agar kartu tidak perlu
+          // mencocokkan teks nama tombol. push menambah halaman baru di atas
+          // stack, jadi tombol Back kembali ke menu utama.
+          final destination = item.page;
+          if (destination != null) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const ProjectFormPage()),
+              MaterialPageRoute(builder: (context) => destination),
             );
           }
         },
