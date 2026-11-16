@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:myportofolio_mobile/screens/project_form.dart';
+import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 
 class ItemHomepage {
   final String name;
@@ -42,7 +44,10 @@ class MyHomePage extends StatelessWidget {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
+      // Drawer dipasang di Scaffold agar ikon menu muncul otomatis di AppBar.
+      drawer: const LeftDrawer(),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
@@ -141,6 +146,7 @@ class ItemCard extends StatelessWidget {
         onTap: () async {
           // Aksi destruktif perlu konfirmasi.
           if (item.requiresConfirmation) {
+            // Dialog mengembalikan nilai true hanya jika Confirm ditekan.
             final confirmed = await showDialog<bool>(
               context: context,
               builder: (dialogContext) {
@@ -185,6 +191,15 @@ class ItemCard extends StatelessWidget {
                 ),
               ),
             );
+
+          // push menambah halaman baru di atas stack, jadi tombol Back
+          // mengembalikan pengguna ke menu utama.
+          if (item.name == "Add Project") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProjectFormPage()),
+            );
+          }
         },
         child: Container(
           padding: const EdgeInsets.all(8),
