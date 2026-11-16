@@ -8,7 +8,7 @@ Kelas : PBP A
 
 Aplikasi mobile portofolio pribadi yang dibangun menggunakan **Flutter** dan **Dart**. Proyek ini merupakan pasangan mobile dari website portofolio Django [myportofolio](https://github.com/rh-elise/myportofolio), dan memakai design system yang sama dengan website tersebut.
 
-Proyek ini dikerjakan bertahap mengikuti Tutorial dan Individual Assignment mata kuliah Pemrograman Berbasis Platform. Pada tahap ini aplikasi masih berupa halaman menu statis yang menampilkan identitas pemilik portofolio beserta tombol-tombol aksi utama.
+Proyek ini dikerjakan bertahap mengikuti Tutorial dan Individual Assignment mata kuliah Pemrograman Berbasis Platform. Pada tahap ini aplikasi sudah memiliki halaman menu, drawer navigasi, serta dua halaman formulir (tambah proyek dan tambah pengalaman) lengkap dengan validasi dan dialog ringkasan.
 
 ## Hubungan dengan Website Portofolio
 
@@ -23,21 +23,26 @@ Website Django `myportofolio` memiliki halaman dan data berikut:
 | Login / Register / Logout | Autentikasi pengguna berbasis session |
 | API (`/api/v1/`) | Endpoint Django REST Framework untuk data Projects dan Experience |
 
-Aplikasi mobile ini disiapkan sebagai klien mobile dari website tersebut. Pada tahap ini aplikasi baru memiliki halaman menu dengan tiga aksi utama:
+Aplikasi mobile ini disiapkan sebagai klien mobile dari website tersebut. Pada tahap ini aplikasi memiliki halaman menu dengan empat aksi utama:
 
 - **View Projects** — nantinya membuka daftar project.
-- **Add Project** — nantinya membuka form penambahan project.
+- **Add Project** — membuka form penambahan project.
+- **Add Experience** — membuka form penambahan pengalaman.
 - **Logout** — keluar dari sesi pengguna.
 
 ## Fitur yang Sudah Ada
 
 - **Kartu identitas (InfoCard):** menampilkan NPM, nama, dan kelas pemilik portofolio.
-- **Kartu aksi (ItemCard):** tiga tombol menu portofolio dalam bentuk kartu berikon.
+- **Kartu aksi (ItemCard):** empat tombol menu portofolio dalam bentuk kartu berikon.
 - **Warna per aksi:** setiap tombol memakai warna berbeda yang diambil dari design system website, tanpa percabangan `if-else`.
 - **Konfirmasi aksi destruktif:** tombol Logout menampilkan dialog konfirmasi sebelum dijalankan.
 - **Umpan balik interaktif:** setiap tombol memunculkan `SnackBar` mengambang dengan aksi *Dismiss*.
-- **Layout responsif:** konten memakai `SafeArea` dan dapat di-*scroll*; jumlah kolom grid menyesuaikan lebar layar (3 kolom di ponsel, 4 kolom di layar lebar).
-- **Struktur modular:** halaman utama dipisahkan ke `lib/menu.dart`, sementara `lib/main.dart` hanya berisi bootstrap aplikasi.
+- **Drawer bersama:** `LeftDrawer` berisi Home, Add Project, dan Add Experience, dipakai oleh halaman menu maupun kedua halaman formulir.
+- **Form tambah proyek:** `StatefulWidget` dengan `Form`, `GlobalKey<FormState>`, dan validasi isian wajib.
+- **Form tambah pengalaman:** enam input dengan label dan aturan validasi yang sama seperti `ExperienceForm` di Django (judul, deskripsi, kategori, tahun lewat `showDatePicker`, thumbnail, status): judul 3–255 karakter, thumbnail berupa path `/static/` atau URL http(s), dan tahun dalam rentang 1950 sampai tahun berjalan + 5.
+- **Dialog ringkasan:** tombol Simpan memanggil `FormState.validate()` lalu menampilkan seluruh isian melalui `AlertDialog` hanya jika valid.
+- **Layout responsif:** konten memakai `SafeArea` dan `SingleChildScrollView`. Kartu identitas ditumpuk di layar sempit (< 480 px) dan sejajar di layar lebar, sedangkan grid aksi memakai 2 kolom di ponsel dan 4 kolom di layar lebar.
+- **Struktur modular:** halaman ada di `lib/screens/`, komponen yang dipakai ulang ada di `lib/widgets/`, dan `lib/main.dart` hanya berisi bootstrap aplikasi.
 
 ## Design System
 
@@ -45,8 +50,9 @@ Warna diambil langsung dari `static/css/style.css` pada repositori website agar 
 
 | Token | Nilai | Pemakaian di aplikasi |
 | --- | --- | --- |
-| `--accent` | `#EB1000` | Tombol View Projects dan AppBar |
-| `--ink` | `#151515` | Tombol Add Project |
+| `--accent` | `#EB1000` | AppBar semua halaman dan tombol View Projects |
+| `--ink` | `#151515` | Tombol Add Project dan header drawer |
+| `--text-muted` | `#374151` | Tombol Add Experience |
 | Accent dark | `#9B0A00` | Tombol Logout |
 | `--paper` | `#FFFFFF` | Latar halaman |
 
@@ -149,31 +155,42 @@ Bagian terpenting dari proyek ini adalah direktori `lib/`:
 ```
 myportofolio_mobile/
 ├── lib/
-│   ├── main.dart          # Bootstrap aplikasi: main(), MyApp, MaterialApp, dan tema
-│   └── menu.dart          # Halaman utama: MyHomePage, InfoCard, ItemCard, ItemHomepage
-├── test/                  # Widget test
-├── android/ ios/ web/     # Berkas pembungkus native tiap platform
-├── analysis_options.yaml  # Konfigurasi linter Dart
-└── pubspec.yaml           # Manifes dependensi dan aset
+│   ├── main.dart                    # Bootstrap: main(), MyApp, MaterialApp, dan tema
+│   ├── screens/
+│   │   ├── menu.dart                # Halaman utama: MyHomePage, InfoCard, ItemHomepage
+│   │   ├── project_form.dart        # Form tambah proyek (Tutorial 09)
+│   │   └── experience_form.dart     # Form tambah pengalaman (Tugas 8)
+│   └── widgets/
+│       ├── left_drawer.dart         # Drawer bersama: Home, Add Project, Add Experience
+│       └── project_card.dart        # Kartu aksi (ItemCard) beserta navigasinya
+├── test/
+│   └── widget_test.dart             # Widget test navigasi dan validasi form
+├── android/ ios/ web/               # Berkas pembungkus native tiap platform
+├── analysis_options.yaml            # Konfigurasi linter Dart
+└── pubspec.yaml                     # Manifes dependensi dan aset
 ```
 
 Pemisahan tersebut mengikuti prinsip *separation of concerns*:
 
 - `main.dart` hanya bertanggung jawab menjalankan aplikasi dan menyiapkan `MaterialApp` beserta temanya.
-- `menu.dart` berisi seluruh komponen antarmuka halaman menu, sehingga perubahan tampilan tidak mengganggu titik masuk aplikasi.
+- `screens/` berisi halaman-halaman yang menjadi tujuan navigasi, sehingga perubahan tampilan satu halaman tidak mengganggu titik masuk aplikasi.
+- `widgets/` berisi komponen yang dipakai lebih dari satu halaman, terutama `LeftDrawer` yang muncul di halaman menu dan kedua halaman formulir.
 
-Penjelasan komponen di `menu.dart`:
+Penjelasan komponen utama:
 
-| Komponen | Peran |
-| --- | --- |
-| `MyHomePage` | Halaman menu utama, berupa `StatelessWidget` karena isinya tidak berubah selama aplikasi berjalan. |
-| `InfoCard` | Widget kartu yang dapat digunakan ulang untuk menampilkan satu pasang judul dan isi. |
-| `ItemHomepage` | Model data yang merepresentasikan satu tombol menu: nama, ikon, warna, dan penanda apakah aksi tersebut perlu konfirmasi. |
-| `ItemCard` | Widget kartu tombol yang menampilkan ikon dan nama item, meminta konfirmasi bila diperlukan, lalu memunculkan `SnackBar` saat ditekan. |
+| Komponen | Berkas | Peran |
+| --- | --- | --- |
+| `MyHomePage` | `screens/menu.dart` | Halaman menu utama, berupa `StatelessWidget` karena isinya tidak berubah selama aplikasi berjalan. |
+| `InfoCard` | `screens/menu.dart` | Widget kartu yang dapat digunakan ulang untuk menampilkan satu pasang judul dan isi. |
+| `ItemHomepage` | `screens/menu.dart` | Model data satu tombol menu: nama, ikon, warna, penanda konfirmasi, dan halaman tujuan (`page`). |
+| `ItemCard` | `widgets/project_card.dart` | Kartu tombol yang meminta konfirmasi bila diperlukan, memunculkan `SnackBar`, lalu membuka `item.page` bila ada. |
+| `LeftDrawer` | `widgets/left_drawer.dart` | Drawer bersama. Opsi Home memakai `popUntil` agar kembali ke halaman utama tanpa menumpuk halaman. |
+| `ProjectFormPage` | `screens/project_form.dart` | Form tambah proyek dari Tutorial 09. |
+| `ExperienceFormPage` | `screens/experience_form.dart` | Form tambah pengalaman: `Form`, `GlobalKey<FormState>`, `showDatePicker`, validasi URL, dan dialog ringkasan. |
 
 ## Mengubah Data Portofolio
 
-Seluruh data yang ditampilkan berada di `lib/menu.dart` pada kelas `MyHomePage`:
+Seluruh data yang ditampilkan berada di `lib/screens/menu.dart` pada kelas `MyHomePage`:
 
 ```dart
 final String npm = "2506600801";
@@ -182,9 +199,20 @@ final String className = "PBP A";
 
 final List<ItemHomepage> items = const [
   // Warna diambil dari design system website portofolio
-  // (static/css/style.css): accent, ink, dan accent dark.
+  // (static/css/style.css): accent, ink, text muted, accent dark.
   ItemHomepage("View Projects", Icons.folder, Color(0xFFEB1000)),
-  ItemHomepage("Add Project", Icons.add_circle, Color(0xFF151515)),
+  ItemHomepage(
+    "Add Project",
+    Icons.add_circle,
+    Color(0xFF151515),
+    page: ProjectFormPage(),
+  ),
+  ItemHomepage(
+    "Add Experience",
+    Icons.work_outline,
+    Color(0xFF374151),
+    page: ExperienceFormPage(),
+  ),
   ItemHomepage(
     "Logout",
     Icons.logout,
@@ -194,7 +222,7 @@ final List<ItemHomepage> items = const [
 ];
 ```
 
-Untuk menambah tombol baru, cukup tambahkan satu entri `ItemHomepage` pada list `items`. Jumlah kolom grid akan menyesuaikan secara otomatis. Parameter `requiresConfirmation` diisi `true` hanya untuk aksi yang bersifat destruktif, seperti Logout.
+Untuk menambah tombol baru, cukup tambahkan satu entri `ItemHomepage` pada list `items` dan isi `page` dengan halaman tujuannya. Jumlah kolom grid menyesuaikan otomatis (2 kolom di ponsel, 4 kolom di layar lebar). Parameter `requiresConfirmation` diisi `true` hanya untuk aksi yang bersifat destruktif, seperti Logout.
 
 ## Progres Mingguan
 
@@ -202,6 +230,8 @@ Untuk menambah tombol baru, cukup tambahkan satu entri `ItemHomepage` pada list 
 | --- | --- | --- |
 | Tutorial 08 | Basic Flutter: setup proyek, pemisahan `menu.dart`, `InfoCard`, `ItemCard`, `SnackBar` | Selesai |
 | Tugas 7 (IA7) | Personalisasi identitas pemilik, warna aksi sesuai design system, dialog konfirmasi logout, `SnackBar` mengambang, layout responsif | Selesai |
+| Tutorial 09 | Navigasi `Navigator.push`, drawer menu, dan form tambah proyek dengan validasi | Selesai |
+| Tugas 8 (IA8) | Form Experience baru, `showDatePicker`, validasi panjang/URL/rentang tahun, drawer Home, dan dialog ringkasan | Selesai |
 
 ---
 
@@ -211,40 +241,34 @@ Untuk menambah tombol baru, cukup tambahkan satu entri `ItemHomepage` pada list 
 
 Halo Kak! Dalam pengerjaan aplikasi mobile ini, saya menggunakan AI sebagai alat bantu untuk memeriksa kode, memahami konsep Flutter, dan merapikan dokumentasi. Saya tetap menentukan keputusan desain dan menuliskan sendiri sebagian besar perubahan pada `menu.dart`, lalu meminta AI memeriksa hasilnya.
 
-### Strategi Prompting
+#### Strategi Prompting
 
-Saya tidak meminta AI membuat aplikasi dari nol. Pola yang saya pakai adalah memberikan konteks terlebih dahulu, kemudian meminta AI memeriksa atau menjelaskan:
+- Menempelkan lembar tugas IA8, isi `lib/screens/project_form.dart`, dan `lib/widgets/left_drawer.dart` sebagai acuan pola, supaya saran mengikuti gaya Tutorial 09 dan bukan kode contoh generik.
+- Membaca `main/models.py` pada proyek Django lebih dulu agar field form (`title`, `description`, `category`, `year`, `status`, `thumbnail`) benar-benar sesuai model `Experience`, termasuk pilihan kategorinya.
+- Meminta audit per poin checklist (navigasi, layout, validasi, dialog) sebelum menulis kode, lalu meminta urutan pengerjaan agar bisa dikerjakan bertahap.
+- Menjalankan sendiri `flutter analyze` dan `flutter test` setelah setiap perubahan, lalu menempelkan pesan error ke AI ketika ada yang gagal.
 
-- Menempelkan isi berkas yang sedang dikerjakan (`lib/main.dart` dan `lib/menu.dart`) agar saran AI sesuai kondisi proyek, bukan contoh umum.
-- Menempelkan luaran `flutter analyze` dan kutipan lembar tugas IA7, lalu meminta AI memeriksa kesesuaian kode dengan checklist.
-- Menunjukkan berkas `static/css/style.css` milik website Django ketika meminta warna tombol disamakan, supaya AI bekerja berdasarkan palet yang benar-benar ada.
-- Meminta penjelasan alasan suatu perubahan, bukan hanya kode jadinya, misalnya mengapa `context.mounted` perlu dicek setelah `await`.
-- Meminta hasil akhir diverifikasi dengan `flutter analyze` dan `flutter test`, bukan hanya dilihat sekilas.
+#### Bagian yang Dibantu AI
 
-### Bagian yang Dibantu AI
+- **Field sesuai model:** enam input Experience memakai label dan aturan validasi yang sama dengan `ExperienceForm` di Django (judul 3–255 karakter, thumbnail `/static/` atau http(s)), termasuk `showDatePicker` mode tahun untuk atribut `year`.
+- **Penyederhanaan navigasi:** saran properti `ItemHomepage.page` agar `ItemCard` tidak lagi mencocokkan `item.name == "Add Project"`.
+- **Perbaikan drawer:** `Navigator.pop()` untuk menutup drawer sebelum `push`, serta `popUntil((route) => route.isFirst)` untuk opsi Home.
+- **Widget test:** penambahan test akses form, validasi kosong, validasi URL, dialog ringkasan, dan alur Home.
+- **Dokumentasi:** pembaruan struktur proyek, tabel design system, progres mingguan, dan jawaban reflektif pada README.
 
-- **Audit kesesuaian tugas:** memeriksa kode terhadap checklist IA7 dan menunjukkan bagian yang belum terpenuhi, terutama warna tombol dan teks `SnackBar`.
-- **Penyusunan struktur:** saran pemisahan komponen dan penggunaan model `ItemHomepage` dengan atribut `color` agar pewarnaan tidak memakai percabangan berulang.
-- **Perbaikan issue analyzer:** menemukan penyebab `prefer_const_constructors_in_immutables` yang muncul setelah list `items` dijadikan `const`, lalu menyarankan perubahan konstruktor dan pemanggilan `const MyHomePage()`.
-- **Perapian format:** menjalankan `dart format` untuk memperbaiki indentasi dan baris yang terlalu panjang.
-- **Dokumentasi:** menyusun kerangka `README.md` (deskripsi proyek, instruksi setup, struktur direktori) serta merapikan format penulisannya.
+#### Keterbatasan AI yang Ditemui
 
-### Keterbatasan AI yang Ditemui
+- **Bug visual tidak terlihat dari kode:** overflow 33 piksel pada `DrawerHeader` baru ketahuan setelah `flutter test` dijalankan dan muncul `A RenderFlex overflowed by 33 pixels`. Perbaikannya (membatasi `maxLines` dan memakai `Flexible`) tetap harus diuji ulang, bukan langsung dipercaya.
+- **Saran awal menyalin terlalu banyak:** AI sempat membiarkan nama field dan kategori project pada form Experience, sehingga form secara model tidak sesuai. Pencocokan ke `main/models.py` harus saya cek sendiri.
+- **Tidak bisa menilai estetika:** AI tidak dapat memastikan tampilan nyaman dipakai. Pengecekan visual tetap dilakukan dengan `flutter run -d chrome`, termasuk jendela selebar ponsel dan kondisi keyboard muncul.
+- **Klaim tanpa bukti:** AI bisa menyatakan "sudah beres" padahal belum dijalankan. Karena itu setiap perubahan diverifikasi lewat `flutter analyze`, `flutter test`, dan uji manual.
 
-- **Konteks awal tidak lengkap:** AI sempat menyimpulkan proyek belum ada karena mencari di lokasi yang salah. Setelah saya berikan path yang benar (`C:\Kuliah\Coding\myportofolio_mobile`), barulah pemeriksaan bisa dilakukan.
-- **Saran di luar design system:** pada rancangan awal, AI mengusulkan warna biru dan hijau untuk tombol. Warna itu terlihat wajar secara umum, tetapi tidak ada di palet website saya, sehingga membuat aplikasi terasa seperti proyek yang berbeda. Saya menggantinya dengan warna dari `style.css`.
-- **Komentar tidak ikut diperbarui:** setelah kode diubah, masih ada komentar lama seperti "menggunakan warna sekunder dari skema tema" padahal warnanya sudah diambil dari `item.color`. Hal seperti ini harus saya periksa sendiri karena tidak terdeteksi oleh analyzer.
-- **Tidak bisa menilai tampilan:** AI tidak dapat memastikan hasil akhir terlihat baik di layar. Penilaian visual tetap saya lakukan dengan menjalankan `flutter run -d chrome`.
+#### Verifikasi Manual yang Dilakukan
 
-### Perbaikan Manual yang Dilakukan
-
-- Menuliskan sendiri perubahan pada `lib/menu.dart`: menambahkan atribut `color` dan `requiresConfirmation` pada `ItemHomepage`, mengisi tiga warna berbeda, membuat dialog konfirmasi logout, mengubah `SnackBar` menjadi mengambang dengan aksi *Dismiss*, serta membungkus body dengan `SafeArea` dan `SingleChildScrollView`.
-- Mengganti warna usulan AI (biru/hijau) dengan palet dari `static/css/style.css`: `#EB1000`, `#151515`, dan `#9B0A00`.
-- Memutuskan sendiri konvensi penulisan: antarmuka dan nama variabel berbahasa Inggris, sedangkan komentar kode berbahasa Indonesia.
-- Memperbaiki komentar yang sudah tidak sesuai dengan kode setelah pewarnaan diubah.
-- Menyesuaikan `test/widget_test.dart` agar menguji data pemilik portofolio, bukan test counter bawaan Flutter.
-- Memastikan hasil akhir bersih dengan `flutter analyze` (`No issues found`) dan `flutter test` (seluruh test lulus) sebelum melakukan commit.
-- Menilai tampilan akhir dengan menjalankan aplikasi di Chrome dan mencoba beberapa ukuran layar untuk memastikan grid responsif berjalan.
+- Memilih `Experience` sebagai model form karena memang ada di website, bukan membuat bagian baru yang tidak punya padanan data.
+- Menjalankan `flutter analyze` (harus `No issues found!`) dan `flutter test` (seluruh test lulus) sebelum commit.
+- Menguji di Chrome: buka form dari kartu dan dari drawer, kosongkan input wajib, isi URL tidak valid, lalu isi lengkap sampai dialog muncul dan tombol OK mengosongkan form.
+- Memastikan tombol Save tetap terjangkau pada layar sempit dengan `SingleChildScrollView` dan jarak bawah tambahan.
 
 ### Log Obrolan AI
 
@@ -494,4 +518,86 @@ Saya tidak meminta AI membuat aplikasi dari nol. Pola yang saya pakai adalah mem
    - Perubahan tidak diterapkan dengan benar setelah Hot Reload, misalnya setelah menambahkan package baru di `pubspec.yaml`.
 
    Dalam kondisi tersebut, developer dapat menggunakan Hot Restart. Jika perubahan juga melibatkan kode native seperti Java, Kotlin, Swift, atau Objective-C, Full Restart mungkin diperlukan. Hot Reload menggunakan Dart JIT (Just-In-Time) sehingga perubahan dapat diterapkan dengan cepat tanpa melakukan kompilasi ulang seluruh kode native.
+
+### Tugas 8
+
+1. **Perbedaan `Navigator.push()`, `Navigator.pushReplacement()`, dan `Navigator.pop()`, metode untuk membuka form dari kartu aksi, serta cara opsi Home mengembalikan pengguna ke halaman utama.**
+
+   - `Navigator.push()` menambahkan route baru di atas route yang sedang aktif. Route lama tetap berada di stack, sehingga tombol back perangkat mengembalikan pengguna ke halaman sebelumnya.
+   - `Navigator.pushReplacement()` menambahkan route baru sekaligus membuang route yang sedang aktif. Metode ini cocok ketika halaman sebelumnya tidak boleh dibuka lagi, misalnya setelah login berhasil.
+   - `Navigator.pop()` melepas route teratas dari stack dan kembali ke route di bawahnya. Di proyek ini `pop()` dipakai untuk menutup `AlertDialog` ringkasan dan untuk menutup drawer.
+
+   Kartu aksi membuka formulir dengan `Navigator.push()`, tepatnya melalui properti `item.page` pada `ItemCard`:
+
+   ```dart
+   Navigator.push(
+     context,
+     MaterialPageRoute(builder: (context) => destination),
+   );
+   ```
+
+   Dengan begitu `MyHomePage` tetap berada di bawah formulir dan tombol back bawaan perangkat kembali ke menu utama. Jika memakai `pushReplacement()`, halaman menu ikut dibuang sehingga tombol back akan keluar dari aplikasi.
+
+   Opsi Home di drawer tidak membuat halaman baru. Drawer ditutup lebih dulu, lalu semua halaman di atas halaman pertama dibuang:
+
+   ```dart
+   final navigator = Navigator.of(context);
+   navigator.pop();                                // tutup drawer
+   navigator.popUntil((route) => route.isFirst);   // kembali ke Home
+   ```
+
+   Karena memakai `popUntil((route) => route.isFirst)`, pengguna kembali ke instance `MyHomePage` yang sama, baik drawer dibuka dari halaman menu maupun dari halaman formulir. Halaman formulir tidak menumpuk, dan halaman utama tidak dibuat ulang.
+
+2. **Peran susunan `Scaffold`, `AppBar`, dan `Drawer` dalam menjaga konsistensi, beserta contoh warna tema yang dipakai di lebih dari satu halaman.**
+
+   `Scaffold` menyediakan slot tetap (`appBar`, `drawer`, `body`), sehingga semua halaman memiliki kerangka yang sama: judul di atas, tombol menu di kiri, dan isi di tengah. `AppBar` pada `MyHomePage`, `ProjectFormPage`, dan `ExperienceFormPage` memakai konfigurasi yang sama, yaitu teks putih tebal dengan latar warna tema:
+
+   ```dart
+   appBar: AppBar(
+     title: const Text(
+       'Add Experience',
+       style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+     ),
+     backgroundColor: Theme.of(context).colorScheme.primary, // #EB1000
+     foregroundColor: Colors.white,
+   ),
+   ```
+
+   `LeftDrawer` dipasang sebagai `drawer` pada halaman menu dan kedua halaman formulir, sehingga pilihan Home, Add Project, dan Add Experience selalu tersedia lengkap di mana pun pengguna berada. Karena drawer berupa satu widget di `lib/widgets/left_drawer.dart`, menambah satu opsi cukup dilakukan sekali dan langsung berlaku di semua halaman.
+
+   Contoh warna tema yang dipakai lebih dari satu halaman adalah `Theme.of(context).colorScheme.primary` (`#EB1000`, token `--accent` dari `static/css/style.css`). Warna yang sama menjadi latar `AppBar` halaman menu, halaman form proyek, dan halaman form pengalaman, sehingga perpindahan halaman tidak terasa seperti berpindah aplikasi.
+
+3. **Alasan pemilihan tata letak formulir serta peran widget pengatur jarak dan widget penggulir saat ruang layar terbatas.**
+
+   Formulir disusun sebagai `Form` → `SingleChildScrollView` → `Column`. `Column` dipilih karena field tersusun satu per satu dari atas ke bawah dan jumlahnya tetap. `SingleChildScrollView` diperlukan karena tinggi total field bisa melebihi tinggi layar, terutama di ponsel atau saat keyboard muncul:
+
+   ```dart
+   Form(
+     key: _formKey,
+     child: SingleChildScrollView(
+       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+       padding: const EdgeInsets.all(16.0),
+       child: Column(...),
+     ),
+   )
+   ```
+
+   `SizedBox(height: 16.0)` memberi jarak antar-field agar pesan error tidak menempel pada field berikutnya, sedangkan `Padding` menjaga isi form tidak menempel ke tepi layar. `SizedBox(height: 32.0)` di bagian paling bawah memberi ruang ekstra supaya tombol Save tidak tertutup keyboard atau gesture bar perangkat.
+
+   Tanpa penggulir, mengetik pada field bawah memunculkan error `RenderFlex overflowed` karena keyboard menutupi separuh layar. Dengan `SingleChildScrollView`, seluruh isi termasuk tombol Save tetap dapat dijangkau dengan menggeser, dan `keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag` membuat keyboard bisa ditutup hanya dengan menggeser form.
+
+4. **Peran `GlobalKey<FormState>`, validator, dan `validate()` saat tombol Simpan ditekan, beserta contoh nilai yang ditolak dan alasan jenis input saja tidak cukup.**
+
+   `GlobalKey<FormState>` menghubungkan tombol Simpan dengan state form yang aktif, sehingga satu tombol dapat memicu pemeriksaan seluruh field sekaligus. Validator adalah fungsi yang mengembalikan pesan kesalahan (string) bila isian tidak memenuhi aturan, atau `null` bila valid. Saat `validate()` dipanggil, Flutter menjalankan semua validator, menampilkan pesan error di bawah field yang bermasalah, dan mengembalikan `false` bila ada yang gagal:
+
+   ```dart
+   void _submit() {
+     if (!_formKey.currentState!.validate()) return; // dialog tidak dibuka
+     showDialog(...); // hanya berjalan jika semua field valid
+   }
+   ```
+
+   Contoh nilai yang ditolak adalah judul berisi spasi saja (`"   "`). Validator memakai `value.trim().isEmpty`, jadi spasi tidak dianggap sebagai isian. Contoh lain, judul `"ab"` ditolak karena kurang dari 3 karakter (aturan yang sama dengan `clean_title` pada `ExperienceForm` Django), thumbnail `"bukan url"` ditolak karena bukan path `/static/` dan `Uri.tryParse` tidak menghasilkan URL `http`/`https`, dan tahun `1900` ditolak karena berada di luar rentang `1950` sampai `DateTime.now().year + 5`.
+
+   Memilih jenis input atau papan ketik saja belum cukup. `keyboardType: TextInputType.url` atau `TextInputType.number` hanya mengubah tampilan papan ketik pada perangkat sentuh. Pengguna tetap bisa menempel teks dari clipboard, memakai papan ketik fisik, atau mengisi lewat autofill, dan papan ketik tidak dapat menolak string kosong atau spasi. Karena itu aturan data tetap harus ditulis di `validator`, sedangkan `keyboardType` hanya berfungsi sebagai kemudahan memasukkan data.
 

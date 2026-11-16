@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 
+/// Halaman formulir penambahan proyek (materi Tutorial 09).
 class ProjectFormPage extends StatefulWidget {
   const ProjectFormPage({super.key});
 
@@ -9,7 +10,7 @@ class ProjectFormPage extends StatefulWidget {
 }
 
 class _ProjectFormPageState extends State<ProjectFormPage> {
-  // Validasi semua field sekaligus waktu Save ditekan.
+  // Dipakai untuk memvalidasi seluruh field sekaligus saat Save ditekan.
   final _formKey = GlobalKey<FormState>();
 
   String _projectName = "";
@@ -27,8 +28,9 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
   ];
 
   void _resetForm() {
+    // reset() hanya mengembalikan tampilan field ke nilai awal; variabel
+    // state ikut dikosongkan agar dialog berikutnya tidak memakai data lama.
     _formKey.currentState!.reset();
-    // reset() hanya membersihkan field, variabel state harus dikosongkan sendiri.
     setState(() {
       _projectName = "";
       _description = "";
@@ -52,6 +54,8 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
       drawer: const LeftDrawer(),
       body: Form(
         key: _formKey,
+        // Isi formulir dapat digulir agar semua field dan tombol Save tetap
+        // terjangkau di layar sempit atau saat keyboard muncul.
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,12 +70,13 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                       borderRadius: BorderRadius.circular(5.0),
                     ),
                   ),
+                  // Setiap perubahan isi field langsung disimpan ke state.
                   onChanged: (String? value) {
                     setState(() {
                       _projectName = value!;
                     });
                   },
-                  // return null artinya isian valid.
+                  // Mengembalikan pesan error; null berarti isian valid.
                   validator: (String? value) {
                     if (value == null || value.trim().isEmpty) {
                       return "Project name cannot be empty!";
@@ -115,7 +120,7 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                       borderRadius: BorderRadius.circular(5.0),
                     ),
                   ),
-                  // value sudah deprecated, pakai initialValue.
+                  // initialValue dipakai karena value sudah deprecated.
                   initialValue: _category,
                   items: _categories
                       .map(
@@ -173,7 +178,8 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                 padding: const EdgeInsets.all(8.0),
                 child: SizedBox(
                   width: double.infinity,
-                  // Belum tersambung ke database, isian hanya ditampilkan di dialog.
+                  // Data belum dikirim ke database; untuk sementara isian hanya
+                  // ditampilkan lewat dialog ringkasan.
                   child: FilledButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
