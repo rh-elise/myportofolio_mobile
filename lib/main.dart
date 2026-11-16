@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myportofolio_mobile/menu.dart';
+import 'package:myportofolio_mobile/screens/menu.dart';
 
 void main() {
   runApp(const MyApp());
@@ -10,6 +10,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // MaterialApp menjadi root yang menyediakan tema dan Navigator
+    // untuk seluruh halaman di bawahnya.
     return MaterialApp(
       title: 'MyPortfolio',
       theme: ThemeData(
