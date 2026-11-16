@@ -9,7 +9,7 @@ class ProjectFormPage extends StatefulWidget {
 }
 
 class _ProjectFormPageState extends State<ProjectFormPage> {
-  // Dipakai untuk memvalidasi seluruh field sekaligus saat Save ditekan.
+  // Validasi semua field sekaligus waktu Save ditekan.
   final _formKey = GlobalKey<FormState>();
 
   String _projectName = "";
@@ -28,8 +28,7 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
 
   void _resetForm() {
     _formKey.currentState!.reset();
-    // reset() hanya membersihkan tampilan field, jadi variabel state ikut
-    // dikosongkan agar dialog berikutnya tidak menampilkan data lama.
+    // reset() hanya membersihkan field, variabel state harus dikosongkan sendiri.
     setState(() {
       _projectName = "";
       _description = "";
@@ -67,13 +66,12 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                       borderRadius: BorderRadius.circular(5.0),
                     ),
                   ),
-                  // Setiap perubahan isi field langsung disimpan ke state.
                   onChanged: (String? value) {
                     setState(() {
                       _projectName = value!;
                     });
                   },
-                  // Validator mengembalikan pesan error; null berarti valid.
+                  // return null artinya isian valid.
                   validator: (String? value) {
                     if (value == null || value.trim().isEmpty) {
                       return "Project name cannot be empty!";
@@ -117,7 +115,7 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                       borderRadius: BorderRadius.circular(5.0),
                     ),
                   ),
-                  // initialValue dipakai karena properti value sudah deprecated.
+                  // value sudah deprecated, pakai initialValue.
                   initialValue: _category,
                   items: _categories
                       .map(
@@ -175,8 +173,7 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                 padding: const EdgeInsets.all(8.0),
                 child: SizedBox(
                   width: double.infinity,
-                  // Data belum dikirim ke database; untuk sementara
-                  // isian hanya ditampilkan lewat dialog.
+                  // Belum tersambung ke database, isian hanya ditampilkan di dialog.
                   child: FilledButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {

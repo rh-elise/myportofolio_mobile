@@ -1,6 +1,4 @@
-// Widget test untuk halaman menu dan alur tambah proyek.
-//
-// Memastikan data pemilik tampil, navigasi ke form berjalan, dan validasi aktif.
+// Test halaman menu dan alur tambah proyek.
 
 import 'package:flutter_test/flutter_test.dart';
 

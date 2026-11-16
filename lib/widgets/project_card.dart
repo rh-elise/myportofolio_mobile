@@ -16,7 +16,7 @@ class ItemCard extends StatelessWidget {
         onTap: () async {
           // Aksi destruktif perlu konfirmasi.
           if (item.requiresConfirmation) {
-            // Dialog mengembalikan nilai true hanya jika Confirm ditekan.
+            // Hanya true kalau user menekan Confirm.
             final confirmed = await showDialog<bool>(
               context: context,
               builder: (dialogContext) {
@@ -43,7 +43,7 @@ class ItemCard extends StatelessWidget {
             if (confirmed != true) return;
           }
 
-          // Context bisa tidak valid lagi setelah await.
+          // Setelah await, context bisa sudah tidak valid.
           if (!context.mounted) return;
 
           ScaffoldMessenger.of(context)
@@ -62,8 +62,6 @@ class ItemCard extends StatelessWidget {
               ),
             );
 
-          // push menambah halaman baru di atas stack, jadi tombol Back
-          // mengembalikan pengguna ke menu utama.
           if (item.name == "Add Project") {
             Navigator.push(
               context,

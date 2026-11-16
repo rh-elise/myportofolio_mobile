@@ -23,7 +23,7 @@ class MyHomePage extends StatelessWidget {
   final String name = "Rheina Uliana";
   final String className = "PBP A";
 
-  // Palet dari static/css/style.css: accent, ink, accent dark.
+  // Tiga warna dari style.css: accent, ink, accent dark.
   final List<ItemHomepage> items = const [
     ItemHomepage("View Projects", Icons.folder, Color(0xFFEB1000)),
     ItemHomepage("Add Project", Icons.add_circle, Color(0xFF151515)),
@@ -46,7 +46,7 @@ class MyHomePage extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.primary,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      // Drawer dipasang di Scaffold agar ikon menu muncul otomatis di AppBar.
+      // Ikon menu di AppBar muncul karena Scaffold punya drawer.
       drawer: const LeftDrawer(),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -117,7 +117,7 @@ class InfoCard extends StatelessWidget {
     return Card(
       elevation: 2.0,
       child: Container(
-        // Dibagi 3.5 agar tiga kartu tetap muat sejajar di layar kecil.
+        // 3.5 biar tiga kartu masih muat sejajar di layar kecil.
         width: MediaQuery.of(context).size.width / 3.5,
         padding: const EdgeInsets.all(16.0),
         child: Column(

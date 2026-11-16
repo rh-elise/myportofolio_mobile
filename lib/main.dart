@@ -10,16 +10,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // MaterialApp menjadi root yang menyediakan tema dan Navigator
-    // untuk seluruh halaman di bawahnya.
     return MaterialApp(
       title: 'MyPortfolio',
       theme: ThemeData(
-        // Palet mengikuti portofolio Django: aksen merah dan ink hitam.
+        // Palet dari style.css.
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFFEB1000),
-          // Dipatok agar AppBar memakai merah yang sama persis
-          // dengan --accent pada style.css website.
+          // AppBar pakai #EB1000 persis, bukan warna turunan fromSeed.
           primary: const Color(0xFFEB1000),
           secondary: const Color(0xFF151515),
         ),

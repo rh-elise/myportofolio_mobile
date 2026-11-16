@@ -10,7 +10,6 @@ class LeftDrawer extends StatelessWidget {
     return Drawer(
       child: ListView(
         children: [
-          // Header memakai warna ink agar tetap kontras dengan AppBar merah.
           const DrawerHeader(
             decoration: BoxDecoration(color: Color(0xFF151515)),
             child: Column(
@@ -35,8 +34,7 @@ class LeftDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.person_outline),
             title: const Text('Profile'),
-            // pushReplacement mengganti halaman aktif, jadi menu Profile
-            // tidak menumpuk di stack saat dibuka berulang kali.
+            // pushReplacement supaya Profile tidak menumpuk di stack.
             onTap: () {
               Navigator.pushReplacement(
                 context,
@@ -47,8 +45,7 @@ class LeftDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.add_circle_outline),
             title: const Text('Add Project'),
-            // push menyisakan halaman menu di bawahnya agar tombol Back
-            // tetap kembali ke sana.
+            // push supaya tombol Back kembali ke menu.
             onTap: () {
               Navigator.push(
                 context,
