@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/screens/menu.dart';
 
 /// Kartu aksi pada halaman utama.
-///
-/// Menampilkan ikon dan nama item, meminta konfirmasi untuk aksi
-/// destruktif, menampilkan SnackBar, lalu membuka [ItemHomepage.page] bila
-/// tersedia.
 class ItemCard extends StatelessWidget {
   final ItemHomepage item;
 
@@ -18,7 +14,7 @@ class ItemCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: () async {
-          // Aksi destruktif memerlukan konfirmasi sebelum dijalankan.
+          // Konfirmasi dibutuhkan untuk aksi destruktif.
           if (item.requiresConfirmation) {
             // Hanya bernilai true jika pengguna menekan Confirm.
             final confirmed = await showDialog<bool>(
@@ -32,33 +28,33 @@ class ItemCard extends StatelessWidget {
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(dialogContext).pop(false),
-                      child: const Text('Cancel'),
+                      child: const Text('Batal'),
                     ),
                     FilledButton(
                       onPressed: () => Navigator.of(dialogContext).pop(true),
-                      child: const Text('Confirm'),
+                      child: const Text('Konfirmasi'),
                     ),
                   ],
                 );
               },
             );
 
-            // Menekan area di luar dialog dianggap batal.
+            // Klik area luar dialog dibatalkan.
             if (confirmed != true) return;
           }
 
-          // Setelah await, context bisa sudah tidak terpasang di widget tree.
+          // Pastikan widget masih terpasang setelah await.
           if (!context.mounted) return;
 
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
               SnackBar(
-                content: Text('You have clicked the ${item.name} button!'),
+                content: Text('Anda menekan tombol ${item.name}!'),
                 behavior: SnackBarBehavior.floating,
                 margin: const EdgeInsets.all(16.0),
                 action: SnackBarAction(
-                  label: 'Dismiss',
+                  label: 'Tutup',
                   onPressed: () {
                     ScaffoldMessenger.of(context).hideCurrentSnackBar();
                   },
@@ -66,9 +62,8 @@ class ItemCard extends StatelessWidget {
               ),
             );
 
-          // Tujuan navigasi diambil dari item.page agar kartu tidak perlu
-          // mencocokkan teks nama tombol. push menambah halaman baru di atas
-          // stack, jadi tombol Back kembali ke menu utama.
+          // Tujuan navigasi dari item.page. Push menambah halaman baru,
+          // tombol Back kembali ke menu utama.
           final destination = item.page;
           if (destination != null) {
             Navigator.push(
