@@ -524,7 +524,7 @@ Halo Kak! Dalam pengerjaan aplikasi mobile ini, saya menggunakan AI sebagai alat
 1. **Perbedaan `Navigator.push()`, `Navigator.pushReplacement()`, dan `Navigator.pop()`, metode untuk membuka form dari kartu aksi, serta cara opsi Home mengembalikan pengguna ke halaman utama.**
 
    - `Navigator.push()` menambahkan route baru di atas route yang sedang aktif. Route lama tetap berada di stack, sehingga tombol back perangkat mengembalikan pengguna ke halaman sebelumnya.
-   - `Navigator.pushReplacement()` menambahkan route baru sekaligus membuang route yang sedang aktif. Metode ini cocok ketika halaman sebelumnya tidak boleh dibuka lagi, misalnya setelah login berhasil.
+   - `Navigator.pushReplacement()` mengganti route yang sedang aktif dengan route baru, jadi pengguna tidak bisa kembali ke halaman sebelumnya lewat tombol back. Metode ini cocok ketika halaman sebelumnya tidak boleh dibuka lagi, misalnya setelah login berhasil.
    - `Navigator.pop()` melepas route teratas dari stack dan kembali ke route di bawahnya. Di proyek ini `pop()` dipakai untuk menutup `AlertDialog` ringkasan dan untuk menutup drawer.
 
    Kartu aksi membuka formulir dengan `Navigator.push()`, tepatnya melalui properti `item.page` pada `ItemCard`:
@@ -546,11 +546,11 @@ Halo Kak! Dalam pengerjaan aplikasi mobile ini, saya menggunakan AI sebagai alat
    navigator.popUntil((route) => route.isFirst);   // kembali ke Home
    ```
 
-   Karena memakai `popUntil((route) => route.isFirst)`, pengguna kembali ke instance `MyHomePage` yang sama, baik drawer dibuka dari halaman menu maupun dari halaman formulir. Halaman formulir tidak menumpuk, dan halaman utama tidak dibuat ulang.
+   `popUntil((route) => route.isFirst)` terus mundur sampai mencapai halaman pertama di stack. Jadi baik drawer dibuka dari halaman menu maupun dari halaman formulir, pengguna selalu kembali ke `MyHomePage` yang sama, bukan halaman baru yang dibuat ulang.
 
 2. **Peran susunan `Scaffold`, `AppBar`, dan `Drawer` dalam menjaga konsistensi, beserta contoh warna tema yang dipakai di lebih dari satu halaman.**
 
-   `Scaffold` menyediakan slot tetap (`appBar`, `drawer`, `body`), sehingga semua halaman memiliki kerangka yang sama: judul di atas, tombol menu di kiri, dan isi di tengah. `AppBar` pada `MyHomePage`, `ProjectFormPage`, dan `ExperienceFormPage` memakai konfigurasi yang sama, yaitu teks putih tebal dengan latar warna tema:
+   `Scaffold` menyediakan slot tetap (`appBar`, `drawer`, `body`), jadi semua halaman punya kerangka yang sama: judul di atas, tombol menu di kiri, dan isi di tengah. `AppBar` pada `MyHomePage`, `ProjectFormPage`, dan `ExperienceFormPage` memakai konfigurasi yang sama, yaitu teks putih tebal dengan latar warna tema:
 
    ```dart
    appBar: AppBar(
@@ -563,7 +563,7 @@ Halo Kak! Dalam pengerjaan aplikasi mobile ini, saya menggunakan AI sebagai alat
    ),
    ```
 
-   `LeftDrawer` dipasang sebagai `drawer` pada halaman menu dan kedua halaman formulir, sehingga pilihan Home, Add Project, dan Add Experience selalu tersedia lengkap di mana pun pengguna berada. Karena drawer berupa satu widget di `lib/widgets/left_drawer.dart`, menambah satu opsi cukup dilakukan sekali dan langsung berlaku di semua halaman.
+   `LeftDrawer` dipasang sebagai `drawer` pada halaman menu dan kedua halaman formulir, jadi pilihan Home, Add Project, dan Add Experience selalu tersedia di mana pun pengguna berada. Karena drawer berupa satu widget di `lib/widgets/left_drawer.dart`, menambah satu opsi cukup dilakukan sekali dan langsung berlaku di semua halaman.
 
    Contoh warna tema yang dipakai lebih dari satu halaman adalah `Theme.of(context).colorScheme.primary` (`#EB1000`, token `--accent` dari `static/css/style.css`). Warna yang sama menjadi latar `AppBar` halaman menu, halaman form proyek, dan halaman form pengalaman, sehingga perpindahan halaman tidak terasa seperti berpindah aplikasi.
 
@@ -582,13 +582,13 @@ Halo Kak! Dalam pengerjaan aplikasi mobile ini, saya menggunakan AI sebagai alat
    )
    ```
 
-   `SizedBox(height: 16.0)` memberi jarak antar-field agar pesan error tidak menempel pada field berikutnya, sedangkan `Padding` menjaga isi form tidak menempel ke tepi layar. `SizedBox(height: 32.0)` di bagian paling bawah memberi ruang ekstra supaya tombol Save tidak tertutup keyboard atau gesture bar perangkat.
+   `SizedBox(height: 16.0)` memberi jarak antar-field agar pesan error tidak menempel pada field berikutnya, sedangkan `Padding` menjaga isi form tidak menempel ke tepi layar. `SizedBox(height: 32.0)` di bagian paling bawah memberi ruang tambahan supaya tombol Save tidak mepet ke tepi layar dan lebih mudah dijangkau saat form digulir.
 
-   Tanpa penggulir, mengetik pada field bawah memunculkan error `RenderFlex overflowed` karena keyboard menutupi separuh layar. Dengan `SingleChildScrollView`, seluruh isi termasuk tombol Save tetap dapat dijangkau dengan menggeser, dan `keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag` membuat keyboard bisa ditutup hanya dengan menggeser form.
+   Tanpa penggulir, ruang layar yang tersisa mengecil saat keyboard muncul, sehingga `Column` bisa melebihi tinggi yang tersedia dan memunculkan error `RenderFlex overflowed`. Dengan `SingleChildScrollView`, seluruh isi termasuk tombol Save tetap dapat dijangkau dengan menggeser, dan `keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag` membuat keyboard bisa ditutup hanya dengan menggeser form.
 
 4. **Peran `GlobalKey<FormState>`, validator, dan `validate()` saat tombol Simpan ditekan, beserta contoh nilai yang ditolak dan alasan jenis input saja tidak cukup.**
 
-   `GlobalKey<FormState>` menghubungkan tombol Simpan dengan state form yang aktif, sehingga satu tombol dapat memicu pemeriksaan seluruh field sekaligus. Validator adalah fungsi yang mengembalikan pesan kesalahan (string) bila isian tidak memenuhi aturan, atau `null` bila valid. Saat `validate()` dipanggil, Flutter menjalankan semua validator, menampilkan pesan error di bawah field yang bermasalah, dan mengembalikan `false` bila ada yang gagal:
+   `GlobalKey<FormState>` dipakai untuk mengakses state dari widget `Form`. Lewat key ini, tombol Simpan bisa memanggil `validate()` untuk memeriksa semua field di dalam form sekaligus. Validator adalah fungsi yang mengembalikan pesan kesalahan (string) bila isian tidak memenuhi aturan, atau `null` bila valid. Saat `validate()` dipanggil, Flutter menjalankan semua validator, menampilkan pesan error di bawah field yang bermasalah, dan mengembalikan `false` bila ada yang gagal:
 
    ```dart
    void _submit() {
@@ -597,7 +597,6 @@ Halo Kak! Dalam pengerjaan aplikasi mobile ini, saya menggunakan AI sebagai alat
    }
    ```
 
-   Contoh nilai yang ditolak adalah judul berisi spasi saja (`"   "`). Validator memakai `value.trim().isEmpty`, jadi spasi tidak dianggap sebagai isian. Contoh lain, judul `"ab"` ditolak karena kurang dari 3 karakter (aturan yang sama dengan `clean_title` pada `ExperienceForm` Django), thumbnail `"bukan url"` ditolak karena bukan path `/static/` dan `Uri.tryParse` tidak menghasilkan URL `http`/`https`, dan tahun `1900` ditolak karena berada di luar rentang `1950` sampai `DateTime.now().year + 5`.
+   Contoh nilai yang ditolak adalah judul berisi spasi saja (`"   "`). Validator memakai `value.trim().isEmpty`, jadi spasi tidak dianggap sebagai isian. Contoh lain, judul `"ab"` ditolak karena kurang dari 3 karakter (aturan yang sama dengan `clean_title` pada `ExperienceForm` Django), thumbnail `"bukan url"` ditolak karena bukan path `/static/` dan, setelah diparse dengan `Uri.tryParse`, skemanya bukan `http` atau `https`, dan tahun `1900` ditolak karena berada di luar rentang `1950` sampai `DateTime.now().year + 5`.
 
    Memilih jenis input atau papan ketik saja belum cukup. `keyboardType: TextInputType.url` atau `TextInputType.number` hanya mengubah tampilan papan ketik pada perangkat sentuh. Pengguna tetap bisa menempel teks dari clipboard, memakai papan ketik fisik, atau mengisi lewat autofill, dan papan ketik tidak dapat menolak string kosong atau spasi. Karena itu aturan data tetap harus ditulis di `validator`, sedangkan `keyboardType` hanya berfungsi sebagai kemudahan memasukkan data.
-
