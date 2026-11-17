@@ -13,10 +13,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'MyPortfolio',
       theme: ThemeData(
-        // Palet diambil dari static/css/style.css pada website portofolio.
+        // Warna diambil dari website portofolio.
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFFEB1000),
-          // AppBar memakai #EB1000 persis, bukan warna turunan fromSeed.
           primary: const Color(0xFFEB1000),
           secondary: const Color(0xFF151515),
         ),

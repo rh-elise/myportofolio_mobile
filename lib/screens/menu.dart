@@ -10,7 +10,7 @@ class ItemHomepage {
   final IconData icon;
   final Color color;
 
-  /// Menandai aksi destruktif yang harus dikonfirmasi sebelum dijalankan.
+  /// Aksi destruktif memerlukan konfirmasi sebelum dijalankan.
   final bool requiresConfirmation;
 
   /// Halaman tujuan yang dibuka saat kartu ditekan. Jika null, kartu hanya
@@ -112,6 +112,7 @@ class MyHomePage extends StatelessWidget {
                   );
                 },
               ),
+
               const SizedBox(height: 16.0),
 
               Center(
@@ -158,8 +159,7 @@ class MyHomePage extends StatelessWidget {
   }
 }
 
-/// Kartu berisi satu pasang judul dan isi, dipakai untuk NPM, nama, dan
-/// kelas.
+/// Kartu berisi satu pasang judul dan isi, dipakai untuk NPM, nama, dan kelas.
 class InfoCard extends StatelessWidget {
   final String title;
   final String content;

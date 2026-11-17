@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/screens/experience_form.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
 
-/// Drawer yang dipakai bersama oleh halaman utama dan halaman formulir,
-/// sehingga isi menu tidak pernah berbeda antar halaman.
+/// Tangkai drawer bersama untuk halaman utama dan formulir.
 class LeftDrawer extends StatelessWidget {
   const LeftDrawer({super.key});
 
-  /// Menutup drawer lalu membuka [page] di atas halaman saat ini.
+  /// Buka halaman dengan tutup drawer terlebih dahulu.
   void _openPage(BuildContext context, Widget page) {
     final navigator = Navigator.of(context);
-    navigator.pop(); // tutup drawer lebih dulu
+    navigator.pop();
     navigator.push(MaterialPageRoute(builder: (_) => page));
   }
 
@@ -19,9 +18,7 @@ class LeftDrawer extends StatelessWidget {
     return Drawer(
       child: ListView(
         children: [
-          // Header memakai warna ink agar tetap kontras dengan AppBar merah.
-          // Teks dibatasi jumlah barisnya agar tidak overflow di layar
-          // sempit maupun saat orientasi lanskap.
+          // Warna ink kontras dengan AppBar merah. Teks potong jika overflow.
           const DrawerHeader(
             decoration: BoxDecoration(color: Color(0xFF151515)),
             child: Column(
@@ -53,8 +50,7 @@ class LeftDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.home_outlined),
             title: const Text('Home'),
-            // pop menutup drawer, lalu popUntil membuang semua halaman di
-            // atas Home sehingga halaman utama tidak dibuat ulang.
+            // Pop drawer, lalu hapus halaman hingga Home.
             onTap: () {
               final navigator = Navigator.of(context);
               navigator.pop();

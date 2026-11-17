@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 
 /// Halaman formulir penambahan pengalaman (Experience).
-///
-/// Isian mengikuti model `Experience` pada website Django: judul,
-/// deskripsi, kategori, tahun, thumbnail, dan status.
 class ExperienceFormPage extends StatefulWidget {
   const ExperienceFormPage({super.key});
 
@@ -128,8 +125,6 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
       drawer: const LeftDrawer(),
       body: Form(
         key: _formKey,
-        // Isi formulir dapat digulir agar semua field dan tombol Save tetap
-        // terjangkau di layar sempit atau saat keyboard muncul.
         child: SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.all(16.0),
