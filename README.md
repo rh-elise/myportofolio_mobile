@@ -236,43 +236,38 @@ Untuk menambah tombol baru, cukup tambahkan satu entri `ItemHomepage` pada list 
 ---
 
 ## Pengungkapan Penggunaan AI (AI Disclosure)
-
-### Pesan Singkat untuk Kak Asdos
-
-Halo Kak! Dalam pengerjaan aplikasi mobile ini, saya menggunakan AI sebagai alat bantu untuk memeriksa kode, memahami konsep Flutter, dan merapikan dokumentasi. Saya tetap menentukan keputusan desain dan menuliskan sendiri sebagian besar perubahan pada `menu.dart`, lalu meminta AI memeriksa hasilnya.
-
 #### Strategi Prompting
 
-- Menempelkan lembar tugas IA8, isi `lib/screens/project_form.dart`, dan `lib/widgets/left_drawer.dart` sebagai acuan pola, supaya saran mengikuti gaya Tutorial 09 dan bukan kode contoh generik.
-- Membaca `main/models.py` pada proyek Django lebih dulu agar field form (`title`, `description`, `category`, `year`, `status`, `thumbnail`) benar-benar sesuai model `Experience`, termasuk pilihan kategorinya.
-- Meminta audit per poin checklist (navigasi, layout, validasi, dialog) sebelum menulis kode, lalu meminta urutan pengerjaan agar bisa dikerjakan bertahap.
-- Menjalankan sendiri `flutter analyze` dan `flutter test` setelah setiap perubahan, lalu menempelkan pesan error ke AI ketika ada yang gagal.
+- Menyertakan lembar tugas IA8, kode `lib/screens/project_form.dart`, dan `lib/widgets/left_drawer.dart` sebagai acuan agar saran yang diberikan sesuai dengan pola dan materi Tutorial 09, bukan menggunakan contoh kode yang terlalu umum.
+- Meminta AI membaca `main/models.py` pada proyek Django terlebih dahulu agar field form (`title`, `description`, `category`, `year`, `status`, dan `thumbnail`) sesuai dengan model `Experience`, termasuk pilihan kategorinya.
+- Meminta AI memeriksa setiap poin checklist, mulai dari navigasi, layout, validasi, hingga dialog, sebelum mulai menulis kode. Setelah itu, saya meminta urutan pengerjaan agar setiap bagian bisa dikerjakan secara bertahap.
+- Menjalankan `flutter analyze` dan `flutter test` sendiri setelah melakukan perubahan. Jika muncul error, saya menyalin pesan error tersebut untuk dibahas kembali dengan AI.
 
 #### Bagian yang Dibantu AI
 
-- **Field sesuai model:** enam input Experience memakai label dan aturan validasi yang sama dengan `ExperienceForm` di Django (judul 3–255 karakter, thumbnail `/static/` atau http(s)), termasuk `showDatePicker` mode tahun untuk atribut `year`.
-- **Penyederhanaan navigasi:** saran properti `ItemHomepage.page` agar `ItemCard` tidak lagi mencocokkan `item.name == "Add Project"`.
-- **Perbaikan drawer:** `Navigator.pop()` untuk menutup drawer sebelum `push`, serta `popUntil((route) => route.isFirst)` untuk opsi Home.
-- **Widget test:** penambahan test akses form, validasi kosong, validasi URL, dialog ringkasan, dan alur Home.
-- **Dokumentasi:** pembaruan struktur proyek, tabel design system, progres mingguan, dan jawaban reflektif pada README.
+- **Penyesuaian field dengan model:** AI membantu menyusun enam input untuk form Experience agar sesuai dengan field dan aturan validasi pada `ExperienceForm` di Django. Aturannya mencakup judul sepanjang 3–255 karakter, thumbnail berupa path `/static/` atau URL http(s), serta pemilihan tahun menggunakan `showDatePicker` dalam mode tahun.
+- **Penyederhanaan navigasi:** AI menyarankan penggunaan properti `ItemHomepage.page` agar `ItemCard` dapat langsung membuka halaman yang dituju, tanpa harus mencocokkan nama item melalui kondisi seperti `item.name == "Add Project"`.
+- **Perbaikan drawer:** AI membantu mengatur navigasi drawer, seperti menggunakan `Navigator.pop()` untuk menutup drawer sebelum berpindah halaman dan `popUntil((route) => route.isFirst)` untuk mengarahkan pengguna kembali ke Home.
+- **Pembuatan widget test:** AI membantu menambahkan beberapa pengujian, seperti akses ke halaman form, validasi input kosong dan URL, kemunculan dialog ringkasan, serta alur navigasi kembali ke Home.
+- **Penyusunan dokumentasi:** AI membantu memperbarui dokumentasi proyek, termasuk struktur folder, tabel design system, progres mingguan, dan styling pada README.
 
 #### Keterbatasan AI yang Ditemui
 
-- **Bug visual tidak terlihat dari kode:** overflow 33 piksel pada `DrawerHeader` baru ketahuan setelah `flutter test` dijalankan dan muncul `A RenderFlex overflowed by 33 pixels`. Perbaikannya (membatasi `maxLines` dan memakai `Flexible`) tetap harus diuji ulang, bukan langsung dipercaya.
-- **Saran awal menyalin terlalu banyak:** AI sempat membiarkan nama field dan kategori project pada form Experience, sehingga form secara model tidak sesuai. Pencocokan ke `main/models.py` harus saya cek sendiri.
-- **Tidak bisa menilai estetika:** AI tidak dapat memastikan tampilan nyaman dipakai. Pengecekan visual tetap dilakukan dengan `flutter run -d chrome`, termasuk jendela selebar ponsel dan kondisi keyboard muncul.
-- **Klaim tanpa bukti:** AI bisa menyatakan "sudah beres" padahal belum dijalankan. Karena itu setiap perubahan diverifikasi lewat `flutter analyze`, `flutter test`, dan uji manual.
+- **Tidak selalu dapat mendeteksi masalah tampilan:** Salah satu contohnya adalah overflow sebesar 33 piksel pada `DrawerHeader` yang baru diketahui setelah menjalankan `flutter test` dan muncul pesan `A RenderFlex overflowed by 33 pixels`. Perbaikannya dilakukan dengan membatasi `maxLines` dan menggunakan `Flexible`, tetapi hasilnya tetap perlu diuji kembali.
+- **Saran awal belum tentu sesuai dengan model:** Pada awalnya, AI masih menggunakan beberapa nama field dan pilihan kategori dari form Project untuk form Experience. Akibatnya, form yang disarankan belum sesuai dengan model yang digunakan. Saya perlu mencocokkannya kembali dengan isi `main/models.py`.
+- **Tidak dapat memastikan kenyamanan tampilan:** AI dapat membantu menyusun layout dari kode, tetapi belum tentu bisa menilai apakah tampilannya nyaman digunakan. Karena itu, saya tetap memeriksa hasilnya melalui `flutter run -d chrome`, termasuk pada ukuran layar seperti ponsel dan saat keyboard muncul.
+- **Jawaban AI perlu dibuktikan:** AI terkadang menyatakan bahwa suatu perubahan sudah benar, padahal kode tersebut belum dijalankan. Oleh karena itu, saya tidak langsung menganggap semua saran sudah berhasil dan tetap melakukan pengecekan melalui `flutter analyze`, `flutter test`, serta pengujian manual.
 
 #### Verifikasi Manual yang Dilakukan
 
-- Memilih `Experience` sebagai model form karena memang ada di website, bukan membuat bagian baru yang tidak punya padanan data.
-- Menjalankan `flutter analyze` (harus `No issues found!`) dan `flutter test` (seluruh test lulus) sebelum commit.
-- Menguji di Chrome: buka form dari kartu dan dari drawer, kosongkan input wajib, isi URL tidak valid, lalu isi lengkap sampai dialog muncul dan tombol OK mengosongkan form.
-- Memastikan tombol Save tetap terjangkau pada layar sempit dengan `SingleChildScrollView` dan jarak bawah tambahan.
+- Memilih `Experience` sebagai model yang digunakan untuk form karena model tersebut memang sudah tersedia pada website Django, sehingga tidak perlu membuat bagian baru yang tidak memiliki padanan data.
+- Menjalankan `flutter analyze` hingga tidak ditemukan masalah (`No issues found!`) dan `flutter test` hingga seluruh pengujian berhasil sebelum melakukan commit.
+- Menguji aplikasi melalui Chrome dengan membuka form dari kartu maupun drawer, mencoba mengosongkan input wajib, memasukkan URL yang tidak valid, dan mengisi seluruh field hingga dialog ringkasan muncul. Saya juga memastikan tombol OK dapat mengosongkan kembali form.
+- Memastikan tombol Save tetap mudah dijangkau pada layar yang sempit dengan menggunakan `SingleChildScrollView` dan menambahkan jarak pada bagian bawah form.
 
 ### Log Obrolan AI
 
-1. [Link Chat 1](https://drive.google.com/file/d/1L1xeq2Oap1b0duCLO9IkmCyTJhP71SNh/view?usp=sharing)
+1. [Link Chat 1](https://drive.google.com/file/d/1JL3fvUyxVwTbR80omkDarGHWWh2a1sjP/view?usp=sharing)
 
 ---
 
