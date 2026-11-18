@@ -23,9 +23,11 @@ Website Django `myportofolio` memiliki halaman dan data berikut:
 | Login / Register / Logout | Autentikasi pengguna berbasis session |
 | API (`/api/v1/`) | Endpoint Django REST Framework untuk data Projects dan Experience |
 
-Aplikasi mobile ini disiapkan sebagai klien mobile dari website tersebut. Pada tahap ini aplikasi memiliki halaman menu dengan empat aksi utama:
+Aplikasi mobile ini disiapkan sebagai klien mobile dari website tersebut. Pada tahap ini aplikasi memiliki halaman menu dengan enam aksi utama:
 
 - **View Projects** — nantinya membuka daftar project.
+- **View Experience** — nantinya membuka daftar pengalaman.
+- **View Artworks** — nantinya membuka galeri karya.
 - **Add Project** — membuka form penambahan project.
 - **Add Experience** — membuka form penambahan pengalaman.
 - **Logout** — keluar dari sesi pengguna.
@@ -33,8 +35,8 @@ Aplikasi mobile ini disiapkan sebagai klien mobile dari website tersebut. Pada t
 ## Fitur yang Sudah Ada
 
 - **Kartu identitas (InfoCard):** menampilkan NPM, nama, dan kelas pemilik portofolio.
-- **Kartu aksi (ItemCard):** empat tombol menu portofolio dalam bentuk kartu berikon.
-- **Warna per aksi:** setiap tombol memakai warna berbeda yang diambil dari design system website, tanpa percabangan `if-else`.
+- **Kartu aksi (ItemCard):** enam tombol menu portofolio dalam bentuk kartu berikon.
+- **Warna per aksi:** setiap tombol memakai warna berbeda tanpa percabangan `if-else`. Warna utama diambil dari design system website, ditambah beberapa warna kontras untuk membedakan tiap aksi.
 - **Konfirmasi aksi destruktif:** tombol Logout menampilkan dialog konfirmasi sebelum dijalankan.
 - **Umpan balik interaktif:** setiap tombol memunculkan `SnackBar` mengambang dengan aksi *Dismiss*.
 - **Drawer bersama:** `LeftDrawer` berisi Home, Add Project, dan Add Experience, dipakai oleh halaman menu maupun kedua halaman formulir.

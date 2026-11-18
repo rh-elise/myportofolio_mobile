@@ -18,6 +18,25 @@ void main() {
     expect(find.text('PBP A'), findsOneWidget);
   });
 
+  testWidgets('Home page shows all action cards', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MyApp());
+
+    const labels = [
+      'View Projects',
+      'View Experience',
+      'View Artworks',
+      'Add Project',
+      'Add Experience',
+      'Logout',
+    ];
+
+    for (final label in labels) {
+      expect(find.text(label), findsOneWidget);
+    }
+  });
+
   testWidgets('Add Project card opens the form page', (
     WidgetTester tester,
   ) async {

@@ -39,6 +39,8 @@ class MyHomePage extends StatelessWidget {
   // accent dark (#9B0A00).
   final List<ItemHomepage> items = const [
     ItemHomepage("View Projects", Icons.folder, Color(0xFFEB1000)),
+    ItemHomepage("View Experience", Icons.work_outline, Color(0xFF1D4ED8)),
+    ItemHomepage("View Artworks", Icons.palette, Color(0xFF0F766E)),
     ItemHomepage(
       "Add Project",
       Icons.add_circle,
@@ -47,7 +49,7 @@ class MyHomePage extends StatelessWidget {
     ),
     ItemHomepage(
       "Add Experience",
-      Icons.work_outline,
+      Icons.add_task,
       Color(0xFF374151),
       page: ExperienceFormPage(),
     ),

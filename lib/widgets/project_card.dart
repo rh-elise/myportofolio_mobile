@@ -28,11 +28,11 @@ class ItemCard extends StatelessWidget {
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(dialogContext).pop(false),
-                      child: const Text('Batal'),
+                      child: const Text('Cancel'),
                     ),
                     FilledButton(
                       onPressed: () => Navigator.of(dialogContext).pop(true),
-                      child: const Text('Konfirmasi'),
+                      child: const Text('Confirm'),
                     ),
                   ],
                 );
@@ -50,11 +50,11 @@ class ItemCard extends StatelessWidget {
             ..hideCurrentSnackBar()
             ..showSnackBar(
               SnackBar(
-                content: Text('Anda menekan tombol ${item.name}!'),
+                content: Text('You have clicked the ${item.name} button!'),
                 behavior: SnackBarBehavior.floating,
                 margin: const EdgeInsets.all(16.0),
                 action: SnackBarAction(
-                  label: 'Tutup',
+                  label: 'Dismiss',
                   onPressed: () {
                     ScaffoldMessenger.of(context).hideCurrentSnackBar();
                   },
