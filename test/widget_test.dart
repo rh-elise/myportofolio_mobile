@@ -45,26 +45,75 @@ void main() {
     await tester.tap(find.text('Add Project'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Project URL (optional)'), findsOneWidget);
+    // Label field mengikuti form project pada website.
+    expect(find.text('PROJECT TITLE'), findsOneWidget);
+    expect(find.text('PROJECT DESCRIPTION'), findsOneWidget);
+    expect(find.text('PROJECT COVER'), findsOneWidget);
+    expect(find.text('PROJECT LINK'), findsOneWidget);
   });
 
-  testWidgets('Form rejects empty input', (WidgetTester tester) async {
+  testWidgets('Project form rejects empty input', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(const MyApp());
 
     await tester.tap(find.text('Add Project'));
     await tester.pumpAndSettle();
 
-    // SnackBar dari halaman menu menutupi tombol Save, jadi ditutup lebih
+    // SnackBar dari halaman menu menutupi tombol submit, jadi ditutup lebih
     // dulu.
     await _dismissSnackBar(tester);
-    await tester.ensureVisible(find.text('Save'));
-    await tester.pumpAndSettle();
+    await _submitProjectForm(tester);
 
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Project name cannot be empty!'), findsOneWidget);
+    expect(find.text('Project title cannot be empty!'), findsOneWidget);
     expect(find.text('Project description cannot be empty!'), findsOneWidget);
+  });
+
+  testWidgets('Project form rejects a cover that is not a URL', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MyApp());
+
+    await tester.tap(find.text('Add Project'));
+    await tester.pumpAndSettle();
+    await _dismissSnackBar(tester);
+
+    // Urutan field: title, description, cover, link.
+    await tester.enterText(_field(2), 'bukan url');
+    await tester.pumpAndSettle();
+
+    await _submitProjectForm(tester);
+
+    expect(
+      find.text('Cover must be a /static/... path or http(s) URL.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Project form shows the summary dialog after a valid submit', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MyApp());
+
+    await tester.tap(find.text('Add Project'));
+    await tester.pumpAndSettle();
+    await _dismissSnackBar(tester);
+
+    await tester.enterText(_field(0), 'Portofolio Mobile');
+    await tester.enterText(
+      _field(1),
+      'Aplikasi Flutter yang terhubung dengan website portofolio.',
+    );
+    await tester.enterText(_field(2), '/static/img/project-cover.png');
+    await tester.enterText(_field(3), 'https://example.com/project');
+    await tester.pumpAndSettle();
+
+    await _submitProjectForm(tester);
+
+    expect(find.text('Project added.'), findsOneWidget);
+    expect(find.text('Title: Portofolio Mobile'), findsOneWidget);
+    expect(find.text('Cover: /static/img/project-cover.png'), findsOneWidget);
+    expect(find.text('Link: https://example.com/project'), findsOneWidget);
   });
 
   testWidgets('Add Experience card opens the experience form', (
@@ -232,8 +281,21 @@ void main() {
 /// Mengambil TextFormField berdasarkan urutan kemunculannya di halaman
 /// formulir.
 ///
+/// Urutan pada formulir project: title, description, cover, link.
 /// Urutan pada formulir pengalaman: title, description, year, thumbnail.
 Finder _field(int index) => find.byType(TextFormField).at(index);
+
+/// Menekan tombol submit pada formulir project.
+///
+/// Tombol dicari lewat tipe agar tidak bentrok dengan judul "Add Project"
+/// pada AppBar.
+Future<void> _submitProjectForm(WidgetTester tester) async {
+  final submit = find.widgetWithText(FilledButton, 'Add Project');
+  await tester.ensureVisible(submit);
+  await tester.pumpAndSettle();
+  await tester.tap(submit);
+  await tester.pumpAndSettle();
+}
 
 /// Menutup SnackBar yang muncul dari halaman menu agar tidak menutupi
 /// tombol di bagian bawah formulir.
