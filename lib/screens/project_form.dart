@@ -381,21 +381,13 @@ class _FormActions extends StatelessWidget {
         if (constraints.maxWidth < 420.0) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              submit,
-              const SizedBox(height: 12.0),
-              cancel,
-            ],
+            children: [submit, const SizedBox(height: 12.0), cancel],
           );
         }
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            cancel,
-            const SizedBox(width: 14.0),
-            submit,
-          ],
+          children: [cancel, const SizedBox(width: 14.0), submit],
         );
       },
     );
@@ -422,9 +414,7 @@ class _BrutalButton extends StatelessWidget {
       shape: const WidgetStatePropertyAll(
         RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       ),
-      side: const WidgetStatePropertyAll(
-        BorderSide(color: _ink, width: 3.0),
-      ),
+      side: const WidgetStatePropertyAll(BorderSide(color: _ink, width: 3.0)),
       padding: const WidgetStatePropertyAll(
         EdgeInsets.symmetric(horizontal: 20.0, vertical: 14.0),
       ),
@@ -458,11 +448,7 @@ class _BrutalButton extends StatelessWidget {
         ],
       ),
       child: primary
-          ? FilledButton(
-              style: style,
-              onPressed: onPressed,
-              child: Text(label),
-            )
+          ? FilledButton(style: style, onPressed: onPressed, child: Text(label))
           : OutlinedButton(
               style: style,
               onPressed: onPressed,

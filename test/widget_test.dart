@@ -18,9 +18,7 @@ void main() {
     expect(find.text('PBP A'), findsOneWidget);
   });
 
-  testWidgets('Home page shows all action cards', (
-    WidgetTester tester,
-  ) async {
+  testWidgets('Home page shows all action cards', (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
 
     const labels = [
@@ -52,9 +50,7 @@ void main() {
     expect(find.text('PROJECT LINK'), findsOneWidget);
   });
 
-  testWidgets('Project form rejects empty input', (
-    WidgetTester tester,
-  ) async {
+  testWidgets('Project form rejects empty input', (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
 
     await tester.tap(find.text('Add Project'));
