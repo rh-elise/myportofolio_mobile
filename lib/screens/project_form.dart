@@ -36,7 +36,14 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
 
   /// Menampilkan ringkasan isian hanya jika seluruh validasi lolos.
   void _submit() {
+    FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
+
+    // Nilai dirapikan seperti clean_title/clean_description di web.
+    final title = _title.trim();
+    final description = _description.trim();
+    final cover = _cover.trim();
+    final link = _link.trim();
 
     showDialog(
       context: context,
@@ -47,10 +54,10 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Title: $_title'),
-                Text('Description: $_description'),
-                Text('Cover: ${_cover.isEmpty ? "-" : _cover}'),
-                Text('Link: ${_link.isEmpty ? "-" : _link}'),
+                Text('Title: $title'),
+                Text('Description: $description'),
+                Text('Cover: ${cover.isEmpty ? "-" : cover}'),
+                Text('Link: ${link.isEmpty ? "-" : link}'),
               ],
             ),
           ),
@@ -75,117 +82,121 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
       drawer: const LeftDrawer(),
       body: Form(
         key: _formKey,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         // Isi formulir dapat digulir agar semua field dan tombol tetap
         // terjangkau di layar sempit atau saat keyboard muncul.
-        child: SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: const EdgeInsets.fromLTRB(20.0, 24.0, 20.0, 40.0),
-          child: FormSurface(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const FormSectionTitle('ADD NEW PROJECT'),
-                const SizedBox(height: 24.0),
+        child: SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.fromLTRB(20.0, 24.0, 20.0, 40.0),
+            child: FormSurface(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const FormSectionTitle('ADD NEW PROJECT'),
+                  const SizedBox(height: 24.0),
 
-                const FieldLabel('PROJECT TITLE'),
-                TextFormField(
-                  textInputAction: TextInputAction.next,
-                  maxLength: 255,
-                  decoration: const InputDecoration(
-                    hintText: "What's the project called?",
-                    counterText: '',
+                  const FieldLabel('PROJECT TITLE'),
+                  TextFormField(
+                    textInputAction: TextInputAction.next,
+                    maxLength: 255,
+                    decoration: const InputDecoration(
+                      hintText: "What's the project called?",
+                      counterText: '',
+                    ),
+                    onChanged: (String? value) =>
+                        setState(() => _title = value ?? ''),
+                    // Validasi mengikuti ProjectForm di Django.
+                    validator: (String? value) {
+                      final text = value?.trim() ?? "";
+                      if (text.isEmpty) {
+                        return "Project title cannot be empty!";
+                      }
+                      if (text.length < 3) {
+                        return "Title must be at least 3 characters.";
+                      }
+                      return null;
+                    },
                   ),
-                  onChanged: (String? value) =>
-                      setState(() => _title = value ?? ''),
-                  // Validasi mengikuti ProjectForm di Django.
-                  validator: (String? value) {
-                    final text = value?.trim() ?? "";
-                    if (text.isEmpty) {
-                      return "Project title cannot be empty!";
-                    }
-                    if (text.length < 3) {
-                      return "Title must be at least 3 characters.";
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20.0),
+                  const SizedBox(height: 20.0),
 
-                const FieldLabel('PROJECT DESCRIPTION'),
-                TextFormField(
-                  minLines: 3,
-                  maxLines: 5,
-                  keyboardType: TextInputType.multiline,
-                  decoration: const InputDecoration(
-                    hintText: 'Tell a little story about this project...',
+                  const FieldLabel('PROJECT DESCRIPTION'),
+                  TextFormField(
+                    minLines: 3,
+                    maxLines: 5,
+                    keyboardType: TextInputType.multiline,
+                    decoration: const InputDecoration(
+                      hintText: 'Tell a little story about this project...',
+                    ),
+                    onChanged: (String? value) =>
+                        setState(() => _description = value ?? ''),
+                    validator: (String? value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return "Project description cannot be empty!";
+                      }
+                      return null;
+                    },
                   ),
-                  onChanged: (String? value) =>
-                      setState(() => _description = value ?? ''),
-                  validator: (String? value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return "Project description cannot be empty!";
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20.0),
+                  const SizedBox(height: 20.0),
 
-                const FieldLabel('PROJECT COVER'),
-                TextFormField(
-                  textInputAction: TextInputAction.next,
-                  keyboardType: TextInputType.url,
-                  decoration: const InputDecoration(
-                    hintText: '/static/img/project-cover.png or http(s)/URL',
+                  const FieldLabel('PROJECT COVER'),
+                  TextFormField(
+                    textInputAction: TextInputAction.next,
+                    keyboardType: TextInputType.url,
+                    decoration: const InputDecoration(
+                      hintText: '/static/img/project-cover.png or http(s)/URL',
+                    ),
+                    onChanged: (String? value) =>
+                        setState(() => _cover = value ?? ''),
+                    // Opsional, tetapi jika diisi harus path /static/ atau URL
+                    // http(s), sama seperti clean_image di Django.
+                    validator: (String? value) {
+                      final text = value?.trim() ?? "";
+                      if (text.isEmpty) return null;
+                      if (!text.startsWith("/static/") &&
+                          !text.startsWith("http")) {
+                        return "Cover must be a /static/... path or http(s) URL.";
+                      }
+                      return null;
+                    },
                   ),
-                  onChanged: (String? value) =>
-                      setState(() => _cover = value ?? ''),
-                  // Opsional, tetapi jika diisi harus path /static/ atau URL
-                  // http(s), sama seperti clean_image di Django.
-                  validator: (String? value) {
-                    final text = value?.trim() ?? "";
-                    if (text.isEmpty) return null;
-                    if (!text.startsWith("/static/") &&
-                        !text.startsWith("http")) {
-                      return "Cover must be a /static/... path or http(s) URL.";
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20.0),
+                  const SizedBox(height: 20.0),
 
-                const FieldLabel('PROJECT LINK'),
-                TextFormField(
-                  textInputAction: TextInputAction.done,
-                  keyboardType: TextInputType.url,
-                  decoration: const InputDecoration(
-                    hintText: 'https://your-project-link.com',
+                  const FieldLabel('PROJECT LINK'),
+                  TextFormField(
+                    textInputAction: TextInputAction.done,
+                    keyboardType: TextInputType.url,
+                    decoration: const InputDecoration(
+                      hintText: 'https://your-project-link.com',
+                    ),
+                    onChanged: (String? value) =>
+                        setState(() => _link = value ?? ''),
+                    validator: (String? value) {
+                      final text = value?.trim() ?? "";
+                      if (text.isEmpty) return null;
+                      final uri = Uri.tryParse(text);
+                      final isHttpUrl =
+                          uri != null &&
+                          (uri.scheme == "http" || uri.scheme == "https") &&
+                          uri.host.isNotEmpty;
+                      if (!isHttpUrl) {
+                        return "Project link must be a valid http(s) URL.";
+                      }
+                      return null;
+                    },
                   ),
-                  onChanged: (String? value) =>
-                      setState(() => _link = value ?? ''),
-                  validator: (String? value) {
-                    final text = value?.trim() ?? "";
-                    if (text.isEmpty) return null;
-                    final uri = Uri.tryParse(text);
-                    final isHttpUrl =
-                        uri != null &&
-                        (uri.scheme == "http" || uri.scheme == "https") &&
-                        uri.host.isNotEmpty;
-                    if (!isHttpUrl) {
-                      return "Project link must be a valid http(s) URL.";
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 28.0),
+                  const SizedBox(height: 28.0),
 
-                // Data belum dikirim ke database; untuk sementara isian hanya
-                // ditampilkan lewat dialog ringkasan.
-                FormActions(
-                  submitLabel: 'Add Project',
-                  onSubmit: _submit,
-                  onCancel: () => Navigator.of(context).maybePop(),
-                ),
-              ],
+                  // Data belum dikirim ke database; untuk sementara isian hanya
+                  // ditampilkan lewat dialog ringkasan.
+                  FormActions(
+                    submitLabel: 'Add Project',
+                    onSubmit: _submit,
+                    onCancel: () => Navigator.of(context).maybePop(),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
