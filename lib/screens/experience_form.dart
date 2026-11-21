@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:myportofolio_mobile/widgets/form_widgets.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 
 /// Halaman formulir penambahan pengalaman (Experience).
+///
+/// Field, label, placeholder, dan validasi mengikuti `ExperienceForm` pada
+/// website Django, tetapi tampilannya dibuat lebih minimalis.
 class ExperienceFormPage extends StatefulWidget {
   const ExperienceFormPage({super.key});
 
@@ -10,20 +14,16 @@ class ExperienceFormPage extends StatefulWidget {
 }
 
 class _ExperienceFormPageState extends State<ExperienceFormPage> {
-  // Dipakai untuk memvalidasi seluruh field sekaligus saat Save ditekan.
   final _formKey = GlobalKey<FormState>();
-
-  // Controller hanya dipakai untuk field tahun karena nilainya diisi lewat
-  // date picker, bukan diketik langsung.
   final _yearController = TextEditingController();
 
   String _title = "";
   String _description = "";
   String _category = "Full-Time";
   String _thumbnail = "";
-  bool _isOngoing = true;
+  String _status = "Ongoing";
 
-  /// Pilihan kategori mengikuti `Experience.Category` pada `main/models.py`.
+  /// Urutan kategori mengikuti `Experience.Category` pada model Django.
   final List<String> _categories = const [
     'Internship',
     'Research',
@@ -33,36 +33,35 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
     'Freelance',
   ];
 
+  static const _statuses = ['Ongoing', 'Completed'];
+
   @override
   void dispose() {
     _yearController.dispose();
     super.dispose();
   }
 
-  /// Membuka pemilih tahun dan mengambil `picked.year`, sesuai atribut
-  /// `year` pada model yang berupa bilangan bulat.
+  /// Membuka pemilih tahun dalam mode tahun lalu mengisi controller.
   Future<void> _pickYear() async {
     final now = DateTime.now();
+    final current = int.tryParse(_yearController.text);
+    final initial = (current != null && current >= 1950)
+        ? DateTime(current)
+        : DateTime(now.year);
+
     final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime(now.year),
+      initialDate: initial,
       firstDate: DateTime(1950),
       lastDate: DateTime(now.year + 5),
       initialDatePickerMode: DatePickerMode.year,
-      helpText: 'Pick experience year',
     );
-
     if (picked == null) return;
-
-    setState(() {
-      _yearController.text = '${picked.year}';
-    });
+    setState(() => _yearController.text = '${picked.year}');
   }
 
-  /// Mengosongkan formulir setelah ringkasan ditutup.
+  /// Mengosongkan formulir setelah dialog ditutup.
   void _resetForm() {
-    // reset() hanya mengembalikan tampilan field; state dan controller
-    // ikut dikosongkan agar dialog berikutnya tidak memakai data lama.
     _formKey.currentState!.reset();
     _yearController.clear();
     setState(() {
@@ -70,11 +69,11 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
       _description = "";
       _category = "Full-Time";
       _thumbnail = "";
-      _isOngoing = true;
+      _status = "Ongoing";
     });
   }
 
-  /// Menampilkan ringkasan isian hanya jika seluruh validasi lolos.
+  /// Menampilkan ringkasan isian hanya jika validasi lolos.
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
 
@@ -91,13 +90,13 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                 Text('Description: $_description'),
                 Text('Category: $_category'),
                 Text('Year: ${_yearController.text}'),
-                Text('Status: ${_isOngoing ? "Ongoing" : "Completed"}'),
+                Text('Status: $_status'),
                 Text('Thumbnail: ${_thumbnail.isEmpty ? "-" : _thumbnail}'),
               ],
             ),
           ),
           actions: [
-            TextButton(
+            FilledButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
                 _resetForm();
@@ -113,203 +112,150 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Add Experience',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-      ),
-      // Drawer yang sama dipakai di semua halaman agar menu tetap konsisten.
+      appBar: AppBar(title: const Text('Add Experience')),
       drawer: const LeftDrawer(),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextFormField(
-                decoration: InputDecoration(
-                  hintText: "e.g. Bangkit Academy 2026",
-                  labelText: "Experience Title",
-                  helperText: "3-255 karakter",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5.0),
+          padding: const EdgeInsets.fromLTRB(20.0, 24.0, 20.0, 40.0),
+          child: FormSurface(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const FormSectionTitle('ADD NEW EXPERIENCE'),
+                const SizedBox(height: 24.0),
+
+                const FieldLabel('Experience Title'),
+                TextFormField(
+                  textInputAction: TextInputAction.next,
+                  maxLength: 255,
+                  decoration: const InputDecoration(
+                    hintText: "What's this experience called?",
+                    counterText: '',
                   ),
-                ),
-                // Setiap perubahan isi field langsung disimpan ke state.
-                onChanged: (String? value) {
-                  setState(() {
-                    _title = value!;
-                  });
-                },
-                // Mengembalikan pesan error; null berarti isian valid.
-                validator: (String? value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return "Experience title cannot be empty!";
-                  }
-                  if (value.trim().length < 3) {
-                    return "Experience title must be at least 3 characters.";
-                  }
-                  if (value.trim().length > 255) {
-                    return "Experience title must be at most 255 characters.";
-                  }
-                  return null;
-                },
-              ),
-
-              const SizedBox(height: 16.0),
-
-              TextFormField(
-                maxLines: 5,
-                decoration: InputDecoration(
-                  hintText: "Describe your role and responsibilities",
-                  labelText: "Experience Description",
-                  alignLabelWithHint: true,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5.0),
-                  ),
-                ),
-                onChanged: (String? value) {
-                  setState(() {
-                    _description = value!;
-                  });
-                },
-                // Mengembalikan pesan error; null berarti isian valid.
-                validator: (String? value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return "Experience description cannot be empty!";
-                  }
-                  return null;
-                },
-              ),
-
-              const SizedBox(height: 16.0),
-
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: "Experience Category",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5.0),
-                  ),
-                ),
-                // initialValue dipakai karena value sudah deprecated.
-                initialValue: _category,
-                items: _categories
-                    .map(
-                      (category) => DropdownMenuItem(
-                        value: category,
-                        child: Text(category),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _category = newValue!;
-                  });
-                },
-              ),
-
-              const SizedBox(height: 16.0),
-
-              TextFormField(
-                controller: _yearController,
-                readOnly: true,
-                // readOnly + onTap membuat field ini hanya bisa diisi lewat
-                // date picker, sehingga formatnya selalu berupa angka tahun.
-                onTap: _pickYear,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  hintText: "Pick a year",
-                  labelText: "Experience Year",
-                  suffixIcon: const Icon(Icons.calendar_today),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5.0),
-                  ),
-                ),
-                validator: (String? value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return "Please pick a year for this experience.";
-                  }
-                  final year = int.tryParse(value.trim());
-                  final maxYear = DateTime.now().year + 5;
-                  if (year == null || year < 1950 || year > maxYear) {
-                    return "Year must be between 1950 and $maxYear.";
-                  }
-                  return null;
-                },
-              ),
-
-              const SizedBox(height: 16.0),
-
-              TextFormField(
-                keyboardType: TextInputType.url,
-                decoration: InputDecoration(
-                  hintText: "/static/img/experience-cover.png or https://...",
-                  labelText: "Experience Thumbnail",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5.0),
-                  ),
-                ),
-                onChanged: (String? value) {
-                  setState(() {
-                    _thumbnail = value!;
-                  });
-                },
-                // Opsional, tetapi jika diisi harus path /static/ atau URL
-                // http(s), sama seperti validasi ExperienceForm di Django.
-                validator: (String? value) {
-                  final text = value?.trim() ?? "";
-                  if (text.isEmpty) {
+                  onChanged: (String? value) =>
+                      setState(() => _title = value ?? ''),
+                  validator: (String? value) {
+                    final text = value?.trim() ?? '';
+                    if (text.isEmpty) {
+                      return 'Experience title cannot be empty!';
+                    }
+                    if (text.length < 3) {
+                      return 'Experience title must be at least 3 characters.';
+                    }
                     return null;
-                  }
-                  final uri = Uri.tryParse(text);
-                  final isStaticPath = text.startsWith("/static/");
-                  final isHttpUrl =
-                      uri != null &&
-                      (uri.scheme == "http" || uri.scheme == "https") &&
-                      uri.host.isNotEmpty;
-                  if (!isStaticPath && !isHttpUrl) {
-                    return "Thumbnail must be a /static/ path or http(s) URL.";
-                  }
-                  return null;
-                },
-              ),
-
-              const SizedBox(height: 8.0),
-
-              // Status mengikuti `Experience.Status`: ongoing atau completed.
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text("Experience Status"),
-                subtitle: Text(_isOngoing ? "Ongoing" : "Completed"),
-                value: _isOngoing,
-                onChanged: (bool value) {
-                  setState(() {
-                    _isOngoing = value;
-                  });
-                },
-              ),
-
-              const SizedBox(height: 16.0),
-
-              SizedBox(
-                width: double.infinity,
-                // Data belum dikirim ke database; untuk sementara isian hanya
-                // ditampilkan lewat dialog ringkasan.
-                child: FilledButton(
-                  onPressed: _submit,
-                  child: const Text('Save'),
+                  },
                 ),
-              ),
+                const SizedBox(height: 20.0),
 
-              // Ruang ekstra di bawah agar tombol Save tidak tertutup
-              // keyboard atau gesture bar perangkat.
-              const SizedBox(height: 32.0),
-            ],
+                const FieldLabel('Experience Description'),
+                TextFormField(
+                  minLines: 3,
+                  maxLines: 5,
+                  keyboardType: TextInputType.multiline,
+                  decoration: const InputDecoration(
+                    hintText: 'Tell a little about this experience...',
+                  ),
+                  onChanged: (String? value) =>
+                      setState(() => _description = value ?? ''),
+                  validator: (String? value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Experience description cannot be empty!';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20.0),
+
+                const FieldLabel('Experience Category'),
+                DropdownButtonFormField<String>(
+                  initialValue: _category,
+                  isExpanded: true,
+                  borderRadius: BorderRadius.zero,
+                  items: _categories.map((String category) {
+                    return DropdownMenuItem<String>(
+                      value: category,
+                      child: Text(category),
+                    );
+                  }).toList(),
+                  onChanged: (String? value) {
+                    setState(() => _category = value ?? 'Full-Time');
+                  },
+                ),
+                const SizedBox(height: 20.0),
+
+                const FieldLabel('Experience Year'),
+                TextFormField(
+                  controller: _yearController,
+                  readOnly: true,
+                  onTap: _pickYear,
+                  decoration: const InputDecoration(
+                    suffixIcon: Icon(Icons.calendar_today_outlined),
+                  ),
+                  validator: (String? value) {
+                    final text = value?.trim() ?? '';
+                    if (text.isEmpty) {
+                      return 'Please pick a year for this experience.';
+                    }
+                    final year = int.tryParse(text);
+                    if (year == null ||
+                        year < 1950 ||
+                        year > DateTime.now().year + 5) {
+                      return 'Year must be between 1950 and ${DateTime.now().year + 5}.';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20.0),
+
+                const FieldLabel('Experience Thumbnail'),
+                TextFormField(
+                  textInputAction: TextInputAction.next,
+                  keyboardType: TextInputType.url,
+                  decoration: const InputDecoration(
+                    hintText: '/static/img/experience-cover.png or http(s) URL',
+                  ),
+                  onChanged: (String? value) =>
+                      setState(() => _thumbnail = value ?? ''),
+                  // Sama seperti clean_thumbnail: opsional, tetapi jika diisi
+                  // harus path /static/ atau URL http(s).
+                  validator: (String? value) {
+                    final text = value?.trim() ?? '';
+                    if (text.isEmpty) return null;
+                    if (!text.startsWith('/static/') &&
+                        !text.startsWith('http')) {
+                      return 'Thumbnail must be a /static/ path or http(s) URL.';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20.0),
+
+                const FieldLabel('Experience Status'),
+                DropdownButtonFormField<String>(
+                  initialValue: _status,
+                  isExpanded: true,
+                  borderRadius: BorderRadius.zero,
+                  items: _statuses.map((String status) {
+                    return DropdownMenuItem<String>(
+                      value: status,
+                      child: Text(status),
+                    );
+                  }).toList(),
+                  onChanged: (String? value) {
+                    setState(() => _status = value ?? 'Ongoing');
+                  },
+                ),
+                const SizedBox(height: 28.0),
+
+                FormActions(
+                  submitLabel: 'Save',
+                  onSubmit: _submit,
+                  onCancel: () => Navigator.of(context).maybePop(),
+                ),
+              ],
+            ),
           ),
         ),
       ),

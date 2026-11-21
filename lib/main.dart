@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/screens/menu.dart';
+import 'package:myportofolio_mobile/theme/app_theme.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,15 +13,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'MyPortfolio',
-      theme: ThemeData(
-        // Warna diambil dari website portofolio.
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFEB1000),
-          primary: const Color(0xFFEB1000),
-          secondary: const Color(0xFF151515),
-        ),
-        useMaterial3: true,
-      ),
+      debugShowCheckedModeBanner: false,
+      // Satu tema untuk seluruh layar agar palet dan sudut tetap konsisten.
+      theme: AppTheme.light,
       home: const MyHomePage(),
     );
   }
