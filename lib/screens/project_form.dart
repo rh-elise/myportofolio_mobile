@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:myportofolio_mobile/models/project.dart';
+import 'package:myportofolio_mobile/services/api_client.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
+import 'package:myportofolio_mobile/widgets/auth_guard.dart';
 import 'package:myportofolio_mobile/widgets/form_widgets.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
+import 'package:provider/provider.dart';
 
-/// Halaman formulir penambahan proyek.
-///
-/// Field, label, placeholder, dan validasi mengikuti `ProjectForm` pada
-/// website Django, tetapi tampilannya dibuat lebih minimalis.
 class ProjectFormPage extends StatefulWidget {
   const ProjectFormPage({super.key});
 
@@ -14,17 +15,15 @@ class ProjectFormPage extends StatefulWidget {
 }
 
 class _ProjectFormPageState extends State<ProjectFormPage> {
-  // Dipakai untuk memvalidasi seluruh field sekaligus saat Add Project ditekan.
   final _formKey = GlobalKey<FormState>();
 
   String _title = "";
   String _description = "";
   String _cover = "";
   String _link = "";
+  bool _isSubmitting = false;
 
   void _resetForm() {
-    // reset() mengembalikan tampilan field; state ikut dikosongkan agar dialog
-    // berikutnya tidak memakai data lama.
     _formKey.currentState!.reset();
     setState(() {
       _title = "";
@@ -34,45 +33,111 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
     });
   }
 
-  /// Menampilkan ringkasan isian hanya jika seluruh validasi lolos.
-  void _submit() {
+  Future<void> _submit() async {
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
 
-    // Nilai dirapikan seperti clean_title/clean_description di web.
-    final title = _title.trim();
-    final description = _description.trim();
-    final cover = _cover.trim();
-    final link = _link.trim();
+    final auth = context.read<AuthState>();
+    final api = context.read<ApiClient>();
+    final messenger = ScaffoldMessenger.of(context);
 
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Project added.'),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Title: $title'),
-                Text('Description: $description'),
-                Text('Cover: ${cover.isEmpty ? "-" : cover}'),
-                Text('Link: ${link.isEmpty ? "-" : link}'),
-              ],
-            ),
-          ),
-          actions: [
-            FilledButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                _resetForm();
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
+    if (!await ensureLoggedIn(context)) return;
+    if (!mounted) return;
+
+    final token = auth.token;
+    if (token == null) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Silakan login terlebih dahulu.')),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    final project = Project(
+      title: _title.trim(),
+      description: _description.trim(),
+      image: _cover.trim(),
+      link: _link.trim(),
     );
+
+    try {
+      await api.createProject(project, token: token);
+      if (!mounted) return;
+
+      showDialog(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text('Project added.'),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Title: ${project.title}'),
+                  Text('Description: ${project.description}'),
+                  Text('Cover: ${project.image.isEmpty ? "-" : project.image}'),
+                  Text('Link: ${project.link.isEmpty ? "-" : project.link}'),
+                ],
+              ),
+            ),
+            actions: [
+              FilledButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  _resetForm();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    } on ApiException catch (error) {
+      if (!mounted) return;
+
+      // 403 = token tidak valid/dicabut (backend ini tidak memakai 401).
+      if (error.statusCode == 401 || error.statusCode == 403) {
+        await auth.logout();
+        if (!mounted) return;
+        final relogin = await ensureLoggedIn(context);
+        if (!mounted) return;
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(
+                relogin
+                    ? 'Sesi berakhir. Tekan Add Project sekali lagi.'
+                    : 'Sesi berakhir. Silakan login.',
+              ),
+            ),
+          );
+        return;
+      }
+
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(_errorMessage(error))));
+    } on Exception {
+      if (!mounted) return;
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Tidak dapat menghubungi server. Cek koneksi.'),
+          ),
+        );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  String _errorMessage(ApiException error) {
+    if (error.statusCode == 400) {
+      return 'Data ditolak server (400). Cover wajib /static/... atau http(s).';
+    }
+    return 'Gagal menyimpan proyek (HTTP ${error.statusCode}).';
   }
 
   @override
@@ -83,8 +148,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
       body: Form(
         key: _formKey,
         autovalidateMode: AutovalidateMode.onUserInteraction,
-        // Isi formulir dapat digulir agar semua field dan tombol tetap
-        // terjangkau di layar sempit atau saat keyboard muncul.
         child: SafeArea(
           top: false,
           child: SingleChildScrollView(
@@ -96,7 +159,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                 children: [
                   const FormSectionTitle('ADD NEW PROJECT'),
                   const SizedBox(height: 24.0),
-
                   const FieldLabel('PROJECT TITLE'),
                   TextFormField(
                     textInputAction: TextInputAction.next,
@@ -107,7 +169,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                     ),
                     onChanged: (String? value) =>
                         setState(() => _title = value ?? ''),
-                    // Validasi mengikuti ProjectForm di Django.
                     validator: (String? value) {
                       final text = value?.trim() ?? "";
                       if (text.isEmpty) {
@@ -120,7 +181,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                     },
                   ),
                   const SizedBox(height: 20.0),
-
                   const FieldLabel('PROJECT DESCRIPTION'),
                   TextFormField(
                     minLines: 3,
@@ -139,7 +199,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                     },
                   ),
                   const SizedBox(height: 20.0),
-
                   const FieldLabel('PROJECT COVER'),
                   TextFormField(
                     textInputAction: TextInputAction.next,
@@ -149,11 +208,12 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                     ),
                     onChanged: (String? value) =>
                         setState(() => _cover = value ?? ''),
-                    // Opsional, tetapi jika diisi harus path /static/ atau URL
-                    // http(s), sama seperti clean_image di Django.
+                    // Backend mewajibkan image terisi, jadi cover wajib di sini.
                     validator: (String? value) {
                       final text = value?.trim() ?? "";
-                      if (text.isEmpty) return null;
+                      if (text.isEmpty) {
+                        return "Project cover cannot be empty!";
+                      }
                       if (!text.startsWith("/static/") &&
                           !text.startsWith("http")) {
                         return "Cover must be a /static/... path or http(s) URL.";
@@ -162,7 +222,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                     },
                   ),
                   const SizedBox(height: 20.0),
-
                   const FieldLabel('PROJECT LINK'),
                   TextFormField(
                     textInputAction: TextInputAction.done,
@@ -187,12 +246,11 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                     },
                   ),
                   const SizedBox(height: 28.0),
-
-                  // Data belum dikirim ke database; untuk sementara isian hanya
-                  // ditampilkan lewat dialog ringkasan.
                   FormActions(
-                    submitLabel: 'Add Project',
-                    onSubmit: _submit,
+                    submitLabel: _isSubmitting ? 'Saving...' : 'Add Project',
+                    onSubmit: () {
+                      if (!_isSubmitting) _submit();
+                    },
                     onCancel: () => Navigator.of(context).maybePop(),
                   ),
                 ],

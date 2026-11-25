@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/models/item_homepage.dart';
+import 'package:myportofolio_mobile/screens/project_form.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
 import 'package:myportofolio_mobile/theme/app_theme.dart';
+import 'package:myportofolio_mobile/widgets/auth_guard.dart';
+import 'package:provider/provider.dart';
 
 /// Kartu aksi pada halaman utama: kotak putih bergaris tinta, tanpa bayangan.
 ///
@@ -46,6 +50,23 @@ class _ItemCardState extends State<ItemCard> {
       if (confirmed != true || !context.mounted) return;
     }
 
+    if (item.name == 'Logout') {
+      final auth = context.read<AuthState>();
+      final messenger = ScaffoldMessenger.of(context);
+      await auth.logout();
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('You have logged out.')));
+      return;
+    }
+
+    final destination = item.page;
+
+    if (destination is ProjectFormPage) {
+      final loggedIn = await ensureLoggedIn(context);
+      if (!loggedIn || !context.mounted) return;
+    }
+
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -61,13 +82,12 @@ class _ItemCardState extends State<ItemCard> {
         ),
       );
 
-    final destination = item.page;
-    if (destination != null) {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => destination),
-      );
-    }
+    if (destination == null) return;
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => destination),
+    );
   }
 
   @override
