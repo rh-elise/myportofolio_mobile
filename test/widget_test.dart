@@ -92,13 +92,26 @@ void main() {
     expect(find.text('Link: https://example.com/project'), findsOneWidget);
   });
 
-  testWidgets('Add Experience card opens the experience form', (
+  testWidgets('Add Experience card asks for login before opening the form', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(_buildApp());
 
     await tester.tap(find.text('Add Experience'));
     await tester.pumpAndSettle();
+
+    // LoginScreen punya 2 field; form pengalaman punya 4 field.
+    expect(find.byType(TextFormField), findsNWidgets(2));
+    expect(find.text('Experience Title'), findsNothing);
+  });
+
+  testWidgets('Experience form opens after a successful login', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(_buildApp());
+
+    await _openExperienceForm(tester);
+    await _dismissSnackBar(tester);
 
     expect(find.text('Experience Title'), findsOneWidget);
     expect(find.text('Experience Thumbnail'), findsOneWidget);
@@ -109,8 +122,7 @@ void main() {
   ) async {
     await tester.pumpWidget(_buildApp());
 
-    await tester.tap(find.text('Add Experience'));
-    await tester.pumpAndSettle();
+    await _openExperienceForm(tester);
     await _dismissSnackBar(tester);
 
     await tester.ensureVisible(find.text('Save'));
@@ -134,8 +146,7 @@ void main() {
   ) async {
     await tester.pumpWidget(_buildApp());
 
-    await tester.tap(find.text('Add Experience'));
-    await tester.pumpAndSettle();
+    await _openExperienceForm(tester);
     await _dismissSnackBar(tester);
 
     await tester.enterText(_field(3), 'bukan url');
@@ -157,8 +168,7 @@ void main() {
   ) async {
     await tester.pumpWidget(_buildApp());
 
-    await tester.tap(find.text('Add Experience'));
-    await tester.pumpAndSettle();
+    await _openExperienceForm(tester);
     await _dismissSnackBar(tester);
 
     await tester.enterText(_field(0), 'Bangkit Academy 2026');
@@ -194,8 +204,7 @@ void main() {
   ) async {
     await tester.pumpWidget(_buildApp());
 
-    await tester.tap(find.text('Add Experience'));
-    await tester.pumpAndSettle();
+    await _openExperienceForm(tester);
     await _dismissSnackBar(tester);
 
     await tester.enterText(_field(0), 'ab');
@@ -217,8 +226,7 @@ void main() {
   ) async {
     await tester.pumpWidget(_buildApp());
 
-    await tester.tap(find.text('Add Experience'));
-    await tester.pumpAndSettle();
+    await _openExperienceForm(tester);
 
     await tester.tap(find.byTooltip('Open navigation menu'));
     await tester.pumpAndSettle();
@@ -239,10 +247,7 @@ void main() {
 
     await tester.pumpWidget(_buildApp());
 
-    await tester.ensureVisible(find.text('Add Experience'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Add Experience'));
-    await tester.pumpAndSettle();
+    await _openExperienceForm(tester);
     await _dismissSnackBar(tester);
 
     // Tombol Save harus tetap bisa dijangkau dengan menggulir.
@@ -270,6 +275,26 @@ Future<void> _openProjectForm(WidgetTester tester) async {
   await tester.pumpAndSettle();
 
   if (find.text('PROJECT TITLE').evaluate().isNotEmpty) return;
+
+  await tester.enterText(find.byType(TextFormField).at(0), 'owner');
+  await tester.enterText(find.byType(TextFormField).at(1), 'secret');
+  await tester.tap(find.widgetWithText(FilledButton, 'Login'));
+  await tester.pumpAndSettle();
+}
+
+/// Membuka form Add Experience; bila diarahkan ke LoginScreen, login lebih
+/// dulu.
+///
+/// Form pengalaman juga dijaga oleh `ensureLoggedIn` pada `ItemCard` dan
+/// `LeftDrawer`.
+Future<void> _openExperienceForm(WidgetTester tester) async {
+  final card = find.text('Add Experience');
+  await tester.ensureVisible(card);
+  await tester.pumpAndSettle();
+  await tester.tap(card);
+  await tester.pumpAndSettle();
+
+  if (find.text('Experience Title').evaluate().isNotEmpty) return;
 
   await tester.enterText(find.byType(TextFormField).at(0), 'owner');
   await tester.enterText(find.byType(TextFormField).at(1), 'secret');
@@ -311,6 +336,17 @@ Widget _buildApp() {
       return http.Response(
         '{"token": "test-token"}',
         200,
+        headers: {'content-type': 'application/json'},
+      );
+    }
+
+    if (request.method == 'POST' && path.contains('/experience/')) {
+      return http.Response(
+        '{"id": 5, "title": "Test", "description": "Test description", '
+        '"category": "full-time", "thumbnail": null, "year": 2026, '
+        '"status": "ongoing", "star_count": 0, "is_starred": false, '
+        '"starred_by_names": ""}',
+        201,
         headers: {'content-type': 'application/json'},
       );
     }
