@@ -5,7 +5,7 @@ import 'package:myportofolio_mobile/config.dart';
 import 'package:myportofolio_mobile/models/experience.dart';
 import 'package:myportofolio_mobile/models/project.dart';
 
-/// Exception thrown when an API request returns a non-2xx status code.
+/// Respons non-2xx dari API, membawa status dan body untuk ditangani pemanggil.
 class ApiException implements Exception {
   const ApiException(this.statusCode, this.message);
 
@@ -16,7 +16,7 @@ class ApiException implements Exception {
   String toString() => 'ApiException($statusCode): $message';
 }
 
-/// HTTP client for the MyPortfolio Django REST Framework backend.
+/// Klien HTTP untuk endpoint `/api/v1/` website MyPortfolio.
 class ApiClient {
   ApiClient({http.Client? client, this.baseUrl = apiBaseUrl})
     : _client = client ?? http.Client();

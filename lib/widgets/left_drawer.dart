@@ -9,7 +9,7 @@ import 'package:myportofolio_mobile/theme/app_theme.dart';
 import 'package:myportofolio_mobile/widgets/auth_guard.dart';
 import 'package:provider/provider.dart';
 
-/// Drawer bersama untuk halaman utama dan formulir.
+/// Drawer bersama untuk halaman menu, daftar, dan formulir.
 class LeftDrawer extends StatelessWidget {
   const LeftDrawer({super.key});
 

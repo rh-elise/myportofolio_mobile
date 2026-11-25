@@ -1,7 +1,4 @@
-// Widget test untuk halaman menu dan alur formulir.
-//
-// Memastikan data pemilik tampil, navigasi ke formulir berjalan, validasi
-// aktif, dan dialog ringkasan hanya muncul setelah semua isian valid.
+// Test halaman menu, navigasi, validasi form, dan alur login.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -259,17 +256,13 @@ void main() {
   });
 }
 
-/// Mengambil TextFormField berdasarkan urutan kemunculannya di halaman
-/// formulir.
+/// TextFormField ke-[index] pada form yang sedang terbuka.
 ///
-/// Urutan pada formulir project: title, description, cover, link.
-/// Urutan pada formulir pengalaman: title, description, year, thumbnail.
+/// Urutan field project: title, description, cover, link.
+/// Urutan field experience: title, description, year, thumbnail.
 Finder _field(int index) => find.byType(TextFormField).at(index);
 
-/// Membuka form Add Project; bila diarahkan ke LoginScreen, login lebih dulu.
-///
-/// Form proyek dijaga oleh `ensureLoggedIn`, sehingga test harus melewati
-/// layar login sebelum bisa mengisi field.
+/// Membuka form Add Project, melewati LoginScreen bila diminta.
 Future<void> _openProjectForm(WidgetTester tester) async {
   await tester.tap(find.text('Add Project'));
   await tester.pumpAndSettle();
@@ -282,11 +275,7 @@ Future<void> _openProjectForm(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
-/// Membuka form Add Experience; bila diarahkan ke LoginScreen, login lebih
-/// dulu.
-///
-/// Form pengalaman juga dijaga oleh `ensureLoggedIn` pada `ItemCard` dan
-/// `LeftDrawer`.
+/// Membuka form Add Experience, melewati LoginScreen bila diminta.
 Future<void> _openExperienceForm(WidgetTester tester) async {
   final card = find.text('Add Experience');
   await tester.ensureVisible(card);
@@ -302,10 +291,8 @@ Future<void> _openExperienceForm(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
-/// Menekan tombol submit pada formulir project.
-///
-/// Tombol dicari lewat tipe agar tidak bentrok dengan judul "Add Project"
-/// pada AppBar.
+/// Menekan tombol submit pada form project. Dicari lewat tipe agar tidak
+/// bentrok dengan judul "Add Project" di AppBar.
 Future<void> _submitProjectForm(WidgetTester tester) async {
   final submit = find.widgetWithText(FilledButton, 'Add Project');
   await tester.ensureVisible(submit);
@@ -314,8 +301,7 @@ Future<void> _submitProjectForm(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
-/// Menutup SnackBar yang muncul dari halaman menu agar tidak menutupi
-/// tombol di bagian bawah formulir.
+/// Menutup SnackBar dari halaman menu agar tidak menutupi tombol di bawah.
 Future<void> _dismissSnackBar(WidgetTester tester) async {
   final dismiss = find.text('Dismiss');
   if (dismiss.evaluate().isEmpty) return;
@@ -324,10 +310,8 @@ Future<void> _dismissSnackBar(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
-/// Membangun aplikasi dengan `ApiClient` palsu.
-///
-/// `MockClient` menggantikan jaringan sungguhan, sehingga test tidak
-/// bergantung pada server Django yang menyala dan hasilnya deterministik.
+/// Membangun aplikasi dengan ApiClient palsu agar test tidak bergantung pada
+/// server Django.
 Widget _buildApp() {
   final client = MockClient((request) async {
     final path = request.url.path;

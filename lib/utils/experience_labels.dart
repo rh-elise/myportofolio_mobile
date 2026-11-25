@@ -1,10 +1,9 @@
-/// Pemetaan label tampilan dengan slug yang diterima API Experience.
+/// Pemetaan label UI ke slug API Experience.
 ///
-/// Form mengirim slug (`full-time`), sedangkan UI menampilkan label
-/// (`Full-Time`). Dikumpulkan di satu tempat agar list, detail, dan form
-/// tidak pernah berbeda nilai.
+/// Form mengirim slug (`full-time`), sedangkan list, detail, dan form
+/// menampilkan label (`Full-Time`).
 abstract final class ExperienceLabels {
-  /// Label UI -> slug yang diterima `ExperienceSerializer`.
+  /// Label kategori -> slug.
   static const Map<String, String> categorySlugs = {
     'Internship': 'internship',
     'Research': 'research',
@@ -14,7 +13,7 @@ abstract final class ExperienceLabels {
     'Freelance': 'freelance',
   };
 
-  /// Label UI -> slug status.
+  /// Label status -> slug.
   static const Map<String, String> statusSlugs = {
     'Ongoing': 'ongoing',
     'Completed': 'completed',
@@ -28,9 +27,9 @@ abstract final class ExperienceLabels {
     for (final entry in statusSlugs.entries) entry.value: entry.key,
   };
 
-  /// Slug -> label untuk ditampilkan; slug tak dikenal dikembalikan apa adanya.
+  /// Slug kategori -> label; slug tak dikenal dikembalikan apa adanya.
   static String categoryLabel(String slug) => _categoryLabels[slug] ?? slug;
 
-  /// Slug -> label untuk ditampilkan; slug tak dikenal dikembalikan apa adanya.
+  /// Slug status -> label; slug tak dikenal dikembalikan apa adanya.
   static String statusLabel(String slug) => _statusLabels[slug] ?? slug;
 }

@@ -7,9 +7,8 @@ import 'package:myportofolio_mobile/theme/app_theme.dart';
 import 'package:myportofolio_mobile/widgets/auth_guard.dart';
 import 'package:provider/provider.dart';
 
-/// Kartu aksi pada halaman utama: kotak putih bergaris tinta, tanpa bayangan.
-///
-/// Garis berubah merah saat kursor berada di atas kartu atau kartu ditekan.
+/// Kartu aksi di halaman utama; garisnya berubah merah saat kursor di atas
+/// kartu atau kartu ditekan.
 class ItemCard extends StatefulWidget {
   final ItemHomepage item;
 

@@ -49,7 +49,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
     super.dispose();
   }
 
-  /// Membuka pemilih tahun dalam mode tahun lalu mengisi controller.
+  /// Membuka pemilih tahun, lalu mengisi field tahun.
   Future<void> _pickYear() async {
     final now = DateTime.now();
     final current = int.tryParse(_yearController.text);

@@ -11,9 +11,8 @@ class ItemHomepage {
   /// Aksi destruktif memerlukan konfirmasi sebelum dijalankan.
   final bool requiresConfirmation;
 
-  /// Halaman tujuan yang dibuka saat kartu ditekan. Jika null, kartu hanya
-  /// menampilkan SnackBar, misalnya View Projects yang belum punya halaman
-  /// tujuan.
+  /// Halaman tujuan saat kartu ditekan. Jika null, kartu hanya menampilkan
+  /// SnackBar.
   final Widget? page;
 
   const ItemHomepage(
