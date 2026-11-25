@@ -90,6 +90,38 @@ class ApiClient {
     return Experience.fromJson(decoded);
   }
 
+  Future<Experience> updateExperience(
+    Experience experience, {
+    required String token,
+  }) async {
+    final id = experience.id;
+    if (id == null) {
+      throw ArgumentError('Experience.id wajib diisi untuk update.');
+    }
+
+    final response = await _client.patch(
+      _uri('/api/v1/experience/$id/'),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Token $token',
+      },
+      body: jsonEncode(experience.toJson()),
+    );
+    _ensureSuccess(response);
+
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    return Experience.fromJson(decoded);
+  }
+
+  Future<void> deleteExperience(int id, {required String token}) async {
+    final response = await _client.delete(
+      _uri('/api/v1/experience/$id/'),
+      headers: {'Accept': 'application/json', 'Authorization': 'Token $token'},
+    );
+    _ensureSuccess(response);
+  }
+
   Future<String> obtainToken(String username, String password) async {
     final response = await _client.post(
       _uri('/api/v1/auth/token/'),
