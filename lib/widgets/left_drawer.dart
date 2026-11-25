@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/screens/experience_form.dart';
+import 'package:myportofolio_mobile/screens/experience_list_screen.dart';
 import 'package:myportofolio_mobile/screens/login_screen.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
+import 'package:myportofolio_mobile/screens/project_list_screen.dart';
 import 'package:myportofolio_mobile/services/auth_state.dart';
 import 'package:myportofolio_mobile/theme/app_theme.dart';
 import 'package:myportofolio_mobile/widgets/auth_guard.dart';
@@ -69,12 +71,22 @@ class LeftDrawer extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.folder_outlined),
+            title: const Text('View Projects'),
+            onTap: () => _openPage(context, const ProjectListScreen()),
+          ),
+          ListTile(
+            leading: const Icon(Icons.work_outline),
+            title: const Text('View Experience'),
+            onTap: () => _openPage(context, const ExperienceListScreen()),
+          ),
+          ListTile(
             leading: const Icon(Icons.add_circle_outline),
             title: const Text('Add Project'),
             onTap: () => _openProtectedPage(context, const ProjectFormPage()),
           ),
           ListTile(
-            leading: const Icon(Icons.work_outline),
+            leading: const Icon(Icons.add_task),
             title: const Text('Add Experience'),
             onTap: () =>
                 _openProtectedPage(context, const ExperienceFormPage()),

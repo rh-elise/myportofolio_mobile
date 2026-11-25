@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/models/item_homepage.dart';
 import 'package:myportofolio_mobile/screens/experience_form.dart';
+import 'package:myportofolio_mobile/screens/experience_list_screen.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
 import 'package:myportofolio_mobile/theme/app_theme.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
@@ -23,7 +24,12 @@ class MyHomePage extends StatelessWidget {
       AppColors.ink,
       page: ProjectListScreen(),
     ),
-    ItemHomepage("View Experience", Icons.work_outline, AppColors.ink),
+    ItemHomepage(
+      "View Experience",
+      Icons.work_outline,
+      AppColors.ink,
+      page: ExperienceListScreen(),
+    ),
     ItemHomepage("View Artworks", Icons.palette_outlined, AppColors.ink),
     ItemHomepage(
       "Add Project",
