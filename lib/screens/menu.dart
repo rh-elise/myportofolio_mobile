@@ -5,6 +5,7 @@ import 'package:myportofolio_mobile/screens/project_form.dart';
 import 'package:myportofolio_mobile/theme/app_theme.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 import 'package:myportofolio_mobile/widgets/project_card.dart';
+import 'package:myportofolio_mobile/screens/project_list_screen.dart';
 
 /// Halaman utama: identitas pemilik portofolio dan kartu aksi.
 class MyHomePage extends StatelessWidget {
@@ -16,7 +17,12 @@ class MyHomePage extends StatelessWidget {
 
   /// Aksi utama memakai aksen merah; aksi biasa memakai tinta.
   final List<ItemHomepage> items = const [
-    ItemHomepage("View Projects", Icons.folder_outlined, AppColors.ink),
+    ItemHomepage(
+      "View Projects",
+      Icons.folder_outlined,
+      AppColors.ink,
+      page: ProjectListScreen(),
+    ),
     ItemHomepage("View Experience", Icons.work_outline, AppColors.ink),
     ItemHomepage("View Artworks", Icons.palette_outlined, AppColors.ink),
     ItemHomepage(
