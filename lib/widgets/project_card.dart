@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/models/item_homepage.dart';
+import 'package:myportofolio_mobile/screens/experience_form.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
 import 'package:myportofolio_mobile/services/auth_state.dart';
 import 'package:myportofolio_mobile/theme/app_theme.dart';
@@ -62,7 +63,7 @@ class _ItemCardState extends State<ItemCard> {
 
     final destination = item.page;
 
-    if (destination is ProjectFormPage) {
+    if (destination is ProjectFormPage || destination is ExperienceFormPage) {
       final loggedIn = await ensureLoggedIn(context);
       if (!loggedIn || !context.mounted) return;
     }

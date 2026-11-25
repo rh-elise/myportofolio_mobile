@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:myportofolio_mobile/models/experience.dart';
+import 'package:myportofolio_mobile/screens/experience_list_screen.dart';
+import 'package:myportofolio_mobile/services/api_client.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
+import 'package:myportofolio_mobile/utils/experience_labels.dart';
+import 'package:myportofolio_mobile/widgets/auth_guard.dart';
 import 'package:myportofolio_mobile/widgets/form_widgets.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
+import 'package:provider/provider.dart';
 
 /// Halaman formulir penambahan pengalaman (Experience).
 ///
@@ -22,6 +29,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
   String _category = "Full-Time";
   String _thumbnail = "";
   String _status = "Ongoing";
+  bool _isSubmitting = false;
 
   /// Urutan kategori mengikuti `Experience.Category` pada model Django.
   final List<String> _categories = const [
@@ -73,46 +81,131 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
     });
   }
 
-  /// Menampilkan ringkasan isian hanya jika validasi lolos.
-  void _submit() {
+  /// Memvalidasi isian, lalu mengirim POST terautentikasi ke backend.
+  Future<void> _submit() async {
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
 
-    // Nilai dirapikan seperti clean_title/clean_description di web.
-    final title = _title.trim();
-    final description = _description.trim();
-    final thumbnail = _thumbnail.trim();
+    final auth = context.read<AuthState>();
+    final api = context.read<ApiClient>();
+    final messenger = ScaffoldMessenger.of(context);
 
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Experience added.'),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Title: $title'),
-                Text('Description: $description'),
-                Text('Category: $_category'),
-                Text('Year: ${_yearController.text}'),
-                Text('Status: $_status'),
-                Text('Thumbnail: ${thumbnail.isEmpty ? "-" : thumbnail}'),
-              ],
-            ),
-          ),
-          actions: [
-            FilledButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                _resetForm();
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
+    if (!await ensureLoggedIn(context)) return;
+    if (!mounted) return;
+
+    final token = auth.token;
+    if (token == null) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Silakan login terlebih dahulu.')),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    final experience = Experience(
+      title: _title.trim(),
+      description: _description.trim(),
+      // Form memakai label; API hanya menerima slug.
+      category: ExperienceLabels.categorySlugs[_category]!,
+      year: int.parse(_yearController.text),
+      status: ExperienceLabels.statusSlugs[_status]!,
+      thumbnail: _thumbnail.trim(),
     );
+
+    try {
+      await api.createExperience(experience, token: token);
+      if (!mounted) return;
+
+      final goToList = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text('Experience added.'),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Title: ${experience.title}'),
+                  Text('Description: ${experience.description}'),
+                  Text('Category: $_category'),
+                  Text('Year: ${experience.year}'),
+                  Text('Status: $_status'),
+                  Text(
+                    'Thumbnail: '
+                    '${experience.thumbnail.isEmpty ? "-" : experience.thumbnail}',
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('OK'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('View list'),
+              ),
+            ],
+          );
+        },
+      );
+      if (!mounted) return;
+
+      if (goToList ?? false) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const ExperienceListScreen()),
+        );
+        return;
+      }
+
+      _resetForm();
+    } on ApiException catch (error) {
+      if (!mounted) return;
+
+      // 403 = token tidak valid/dicabut (backend ini tidak memakai 401).
+      if (error.statusCode == 401 || error.statusCode == 403) {
+        await auth.logout();
+        if (!mounted) return;
+        final relogin = await ensureLoggedIn(context);
+        if (!mounted) return;
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(
+                relogin
+                    ? 'Sesi berakhir. Tekan Add Experience sekali lagi.'
+                    : 'Sesi berakhir. Silakan login.',
+              ),
+            ),
+          );
+        return;
+      }
+
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(_errorMessage(error))));
+    } on Exception {
+      if (!mounted) return;
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Tidak dapat menghubungi server. Cek koneksi.'),
+          ),
+        );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  String _errorMessage(ApiException error) {
+    if (error.statusCode == 400) {
+      return 'Data ditolak server (400). Periksa kategori, tahun, dan status.';
+    }
+    return 'Gagal menyimpan pengalaman (HTTP ${error.statusCode}).';
   }
 
   @override
@@ -260,8 +353,10 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                   const SizedBox(height: 28.0),
 
                   FormActions(
-                    submitLabel: 'Save',
-                    onSubmit: _submit,
+                    submitLabel: _isSubmitting ? 'Saving...' : 'Save',
+                    onSubmit: () {
+                      if (!_isSubmitting) _submit();
+                    },
                     onCancel: () => Navigator.of(context).maybePop(),
                   ),
                 ],
